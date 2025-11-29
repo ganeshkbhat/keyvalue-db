@@ -76,5 +76,274 @@
             }
         },
         "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "get",
+            "data": {
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": ""
+    },
+    "2": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "3": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "get",
+            "data": {
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": ""
+    },
+    "4": {
+        "payload": {
+            "event": "read",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "read",
+            "data": {
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": ""
+    },
+    "5": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "6": {
+        "payload": {
+            "event": "dumpkeys",
+            "data": {
+                "keys": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "failed",
+            "event": "dumpkeys",
+            "error": {}
+        },
+        "description": ""
+    },
+    "7": {
+        "payload": {
+            "event": "dumpkeys",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "failed",
+            "event": "dumpkeys",
+            "error": {}
+        },
+        "description": ""
+    },
+    "8": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "9": {
+        "payload": {
+            "event": "dump",
+            "data": {},
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dump",
+            "data": {
+                "12": 20000,
+                "879898": [
+                    "test",
+                    "for",
+                    "alues"
+                ],
+                "testing": "for alues",
+                "123tsj": "testing",
+                "store": [
+                    "vaue",
+                    "loads",
+                    10
+                ],
+                "user_id": 101,
+                "username": "alpha_user",
+                "status": "Active",
+                "tags": [
+                    "premium",
+                    "new_member",
+                    "verified"
+                ],
+                "location": "New York City",
+                "last_login": "2025-11-10",
+                "settings": {
+                    "theme": "dark",
+                    "notifications": true
+                },
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": ""
+    },
+    "10": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
     }
 }

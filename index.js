@@ -272,7 +272,7 @@ function startServer(port, hostname = "localhost", options = {}, apps = [], midd
                         let regex = options?.regex || false
                         let type = options?.type || "keyvalue"
                         try {
-                            allDumpKeysItems = app.dataManager.dumpKeys(data.keys, { like: options?.like ? options?.like : false });
+                            allDumpKeysItems = app.dataManager.dumpKeys(data.keys, { like: options?.like ? options?.like : false }, "search");
                             return res.status(200).json({ status: 'success', event: event, data: allDumpKeysItems, count: allDumpKeysItems?.length })
                         } catch (e) {
                             return res.status(500).json({ status: 'failed', event: event, data: allDumpKeysItems, count: allDumpKeysItems?.length, error: e });

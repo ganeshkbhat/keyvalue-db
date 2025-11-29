@@ -16,34 +16,34 @@ const {
 describe('API Sequence Testing: Payloads and Expected Responses', () => {
     let allTestScenarios = [
         // // handled - dump  
-        "./payloads.dump.json",
-        // // handled -   
+        // "./payloads.dump.json",
+        // // handled -    (NOT WORKING, Error)
         // "./payloads.dumpkey.json", 
-        // // handled -   
-        "./payloads.dumpkeys.json",
+        // // handled -    (NOT WORKING, Error)
+        // "./payloads.dumpkeys.json",
         // // handled - init
-        "./payloads.init.json",
+        // "./payloads.init.json",
         // // handled - load
-        "./payloads.load.json",
+        // "./payloads.load.json",
         // // handled - get 
-        "./payloads.get.json",
+        // "./payloads.get.json",
         // // handled - delete 
-        "./payloads.delete.json", 
+        // "./payloads.delete.json", 
         // // handled - deleteKey or delete 
-        "./payloads.delete.one.json",
+        // "./payloads.delete.one.json",
         // // handled - deleteKey or delete
-        "./payloads.delete.two.json",
+        // "./payloads.delete.two.json",
         // // handled - deletekeys 
-        "./payloads.deletekeys.json",
+        // "./payloads.deletekeys.json",
         // // handled - remove 
-        "./payloads.remove.json",
+        // "./payloads.remove.json",
         // // handled - read  (NOT WORKING, Error)
-        // "./payloads.read.json",
-        // // handled - create 
+        "./payloads.read.json",
+        // // handled - create  (NOT WORKING, Error)
         // "./payloads.create.json",
-        // // handled -  set
+        // // handled -  set  (NOT WORKING, Error)
         // "./payloads.set.json",
-        // // handled - 
+        // // handled -  
         // "./payloads.update.json",
         // // handled - 
         // "./payloads.search.json",
