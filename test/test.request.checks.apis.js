@@ -17,10 +17,10 @@ describe('API Sequence Testing: Payloads and Expected Responses', () => {
     let allTestScenarios = [
         // // handled - dump  
         // "./payloads.dump.json",
-        // // handled -    (NOT WORKING, Error)
+        // // handled - dumpkey
         // "./payloads.dumpkey.json", 
         // // handled -    (NOT WORKING, Error)
-        // "./payloads.dumpkeys.json",
+        "./payloads.dumpkeys.json",
         // // handled - init
         // "./payloads.init.json",
         // // handled - load

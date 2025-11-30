@@ -181,6 +181,49 @@
         "payload": {
             "event": "dumpkey",
             "data": {
+                "key": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "6": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "keys": "12"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
+    },
+    "7": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
                 "key": "scores"
             },
             "options": {
@@ -202,42 +245,6 @@
                 }
             ],
             "count": 1
-        },
-        "description": ""
-    },
-    "6": {
-        "payload": {
-            "event": "dumpkeys",
-            "data": {
-                "keys": "scores"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "failed",
-            "event": "dumpkeys",
-            "error": {}
-        },
-        "description": ""
-    },
-    "7": {
-        "payload": {
-            "event": "dumpkeys",
-            "data": {
-                "key": "scores"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "failed",
-            "event": "dumpkeys",
-            "error": {}
         },
         "description": ""
     },
