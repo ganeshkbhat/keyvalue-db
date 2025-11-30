@@ -127,7 +127,8 @@
                     96
                 ]
             }
-        }
+        },
+        "description": ""
     },
     "2": {
         "payload": {
@@ -172,7 +173,8 @@
                     96
                 ]
             }
-        }
+        },
+        "description": ""
     },
     "3": {
         "payload": {
@@ -188,7 +190,8 @@
                 "key": "testing"
             },
             "message": "Item with key \"testing\" successfully removed."
-        }
+        },
+        "description": ""
     },
     "4": {
         "payload": {
@@ -208,7 +211,8 @@
                     96
                 ]
             }
-        }
+        },
+        "description": ""
     },
     "5": {
         "payload": {
@@ -224,7 +228,8 @@
             "data": {
                 "scores": "what score are you talking about"
             }
-        }
+        },
+        "description": ""
     },
     "6": {
         "payload": {
@@ -268,7 +273,8 @@
                 "neyketupdate": true,
                 "newbee": true
             }
-        }
+        },
+        "description": ""
     },
     "7": {
         "payload": {

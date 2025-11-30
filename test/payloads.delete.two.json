@@ -92,7 +92,7 @@
             },
             "message": "Item with key \"undefined\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "2": {
         "payload": {
@@ -111,7 +111,7 @@
             },
             "message": "Item with key \"undefined\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "3": {
         "payload": {
@@ -125,7 +125,7 @@
             "event": "get",
             "message": "Item with key \"testing\" not found."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "4": {
         "payload": {
@@ -169,7 +169,7 @@
                 ]
             }
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "5": {
         "payload": {
@@ -183,6 +183,6 @@
             "event": "get",
             "message": "Item with key \"testing\" not found."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     }
 }

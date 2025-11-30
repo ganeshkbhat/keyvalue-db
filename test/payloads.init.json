@@ -98,7 +98,8 @@
                     92
                 ]
             }
-        }
+        },
+        "description": ""
     },
     "2": {
         "payload": {
@@ -115,7 +116,8 @@
                     92
                 ]
             }
-        }
+        },
+        "description": ""
     },
     "3": {
         "payload": {
@@ -131,7 +133,8 @@
                 "key": "scores"
             },
             "message": "Item with key \"scores\" successfully removed."
-        }
+        },
+        "description": ""
     },
     "4": {
         "payload": {
@@ -144,7 +147,8 @@
             "status": "error",
             "event": "get",
             "message": "Item with key \"scores\" not found."
-        }
+        },
+        "description": ""
     },
     "5": {
         "payload": {
@@ -160,7 +164,8 @@
             "data": {
                 "scores": "what score are you talking about"
             }
-        }
+        },
+        "description": ""
     },
     "6": {
         "payload": {
@@ -173,6 +178,7 @@
             "data": {
                 "scores": "what score are you talking about"
             }
-        }
+        },
+        "description": ""
     }
 }

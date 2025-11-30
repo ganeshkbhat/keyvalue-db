@@ -153,7 +153,7 @@
                 ]
             }
         },
-        "description": "1 - init and then run the tests"
+        "description": ""
     },
     "2": {
         "payload": {
@@ -198,7 +198,7 @@
                 ]
             }
         },
-        "description": "1 - the first dump without any alterations"
+        "description": ""
     },
     "3": {
         "payload": {
@@ -215,7 +215,7 @@
             },
             "message": "Item with key \"12\" successfully removed."
         },
-        "description": "2 - delete key 12 to check if dump function work withut errors"
+        "description": ""
     },
     "4": {
         "payload": {
@@ -259,7 +259,7 @@
                 ]
             }
         },
-        "description": "3 - third function dump to check delete key 12 worked or not. should not have key 12"
+        "description": ""
     },
     "5": {
         "payload": {
@@ -309,7 +309,7 @@
                 ]
             }
         },
-        "description": "4- check delete key 12  worked or not. dump should not have key 12"
+        "description": ""
     },
     "6": {
         "payload": {

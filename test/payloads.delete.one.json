@@ -92,7 +92,7 @@
             },
             "message": "Item with key \"testing\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "2": {
         "payload": {
@@ -111,7 +111,7 @@
             },
             "message": "Item with key \"undefined\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "3": {
         "payload": {
@@ -128,7 +128,7 @@
             },
             "message": "Item with key \"12\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "4": {
         "payload": {
@@ -145,7 +145,7 @@
             },
             "message": "Item with key \"undefined\" successfully removed."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "5": {
         "payload": {
@@ -159,7 +159,7 @@
             "event": "get",
             "message": "Item with key \"testing\" not found."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "6": {
         "payload": {
@@ -173,7 +173,7 @@
             "event": "get",
             "message": "Item with key \"12\" not found."
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "7": {
         "payload": {
@@ -193,7 +193,7 @@
                 ]
             }
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "8": {
         "payload": {
@@ -208,7 +208,7 @@
             "data": [],
             "count": 0
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "9": {
         "payload": {
@@ -223,7 +223,7 @@
             "data": [],
             "count": 0
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "10": {
         "payload": {
@@ -247,7 +247,7 @@
             ],
             "count": 1
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     },
     "11": {
         "payload": {
@@ -290,6 +290,6 @@
                 ]
             }
         },
-        "description": "series of tests to test delete event function for removing key 'testing'"
+        "description": ""
     }
 }
