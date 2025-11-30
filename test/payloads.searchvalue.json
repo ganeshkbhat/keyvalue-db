@@ -78,51 +78,377 @@
         "description": "1 - init and then run the tests"
     },
     "1": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "testing" } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "testing": "for alues" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "key": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
     },
     "2": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "testing" } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "testing": "for alues" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "879898",
+                    "value": [
+                        "test",
+                        "for",
+                        "alues"
+                    ]
+                },
+                {
+                    "key": "123tsj",
+                    "value": "testing"
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
     },
     "3": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "testing" } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "testing": "for alues" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "123tsj",
+                    "value": "testing"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
     },
     "4": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "testing" } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "testing": "for alues" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    "testing"
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "123tsj",
+                    "value": "testing"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
     },
     "5": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "12" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "12": "20000" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    "testing"
+                ]
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "123tsj",
+                    "value": "testing"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
     },
     "6": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "12" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "12": "20000" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    "testing",
+                    20000
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "12",
+                    "value": 20000
+                },
+                {
+                    "key": "123tsj",
+                    "value": "testing"
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
     },
     "7": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "12" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "12": "20000" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "key": "test"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
     },
     "8": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "12" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "12": "20000" } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    "test",
+                    20000,
+                    "alues"
+                ]
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "12",
+                    "value": 20000
+                },
+                {
+                    "key": "879898",
+                    "value": [
+                        "test",
+                        "for",
+                        "alues"
+                    ]
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
     },
     "9": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "score" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "score": [] } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "key": "score"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
     },
     "10": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "score" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "score": [] } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
     },
     "11": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "test" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "score": [] } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": "score"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [],
+            "count": 0
+        },
+        "description": ""
     },
     "12": {
-        "payload": { "event" :  "searchvalue", "data": { "key": "test" }, "options" : { "like" : true, "regex" : false } },
-        "response": { "status": "success", "event" :  "searchvalue", "data": { "score": [] } }
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    20000,
+                    95
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "12",
+                    "value": 20000
+                },
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
+    },
+    "13": {
+        "payload": {
+            "event": "searchvalues",
+            "data": {
+                "keys": [
+                    20000,
+                    95,
+                    12
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchvalues",
+            "data": [
+                {
+                    "key": "12",
+                    "value": 20000
+                },
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
+    },
+    "15": {
+        "payload": {
+            "event": "dump",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "dump",
+            "data": {
+                "12": 20000,
+                "879898": [
+                    "test",
+                    "for",
+                    "alues"
+                ],
+                "testing": "for alues",
+                "123tsj": "testing",
+                "store": [
+                    "vaue",
+                    "loads",
+                    10
+                ],
+                "user_id": 101,
+                "username": "alpha_user",
+                "status": "Active",
+                "tags": [
+                    "premium",
+                    "new_member",
+                    "verified"
+                ],
+                "location": "New York City",
+                "last_login": "2025-11-10",
+                "settings": {
+                    "theme": "dark",
+                    "notifications": true
+                },
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": ""
     }
 }

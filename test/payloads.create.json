@@ -80,30 +80,35 @@
     "1": {
         "payload": {
             "event": "create",
-            "data": {
-                "key": "test",
-                "value": "triumph here"
-            }
+            "data": [
+                {
+                    "key": "testings",
+                    "value": "triumph here"
+                }
+            ]
         },
         "response": {
             "status": "success",
             "event": "create",
-            "data": {}
+            "data": {
+                "testings": "triumph here"
+            }
         },
         "description": ""
     },
     "2": {
         "payload": {
-            "event": "create",
+            "event": "get",
             "data": {
-                "key": "testing",
-                "value": "triumph here"
+                "key": "testings"
             }
         },
         "response": {
             "status": "success",
-            "event": "create",
-            "data": {}
+            "event": "get",
+            "data": {
+                "testings": "triumph here"
+            }
         },
         "description": ""
     },
@@ -111,14 +116,14 @@
         "payload": {
             "event": "read",
             "data": {
-                "key": "testing"
+                "key": "testings"
             }
         },
         "response": {
             "status": "success",
             "event": "read",
             "data": {
-                "testing": "for alues"
+                "testings": "triumph here"
             }
         },
         "description": ""
@@ -126,52 +131,83 @@
     "4": {
         "payload": {
             "event": "create",
-            "data": {
-                "keys": "testing"
-            }
+            "data": [
+                {
+                    "key": "122",
+                    "value": "20000"
+                }
+            ]
         },
         "response": {
-            "status": "error",
+            "status": "success",
             "event": "create",
-            "message": "Missing required fields: \"key\" (string) and \"value\" (object) for \"set\" event."
+            "data": {
+                "122": "20000"
+            }
         },
         "description": ""
     },
     "5": {
         "payload": {
-            "event": "create",
+            "event": "get",
             "data": {
-                "key": "testing"
+                "key": "122"
             }
         },
         "response": {
-            "status": "error",
-            "event": "create",
-            "message": "Missing required fields: \"key\" (string) and \"value\" (object) for \"set\" event."
+            "status": "success",
+            "event": "get",
+            "data": {
+                "122": "20000"
+            }
         },
         "description": ""
     },
     "6": {
         "payload": {
-            "event": "create",
+            "event": "read",
             "data": {
-                "key": "testing",
-                "value": "trumph here now"
+                "key": "122"
             }
         },
         "response": {
             "status": "success",
-            "event": "create",
-            "data": {}
+            "event": "read",
+            "data": {
+                "122": "20000"
+            }
         },
         "description": ""
     },
     "7": {
         "payload": {
             "event": "create",
+            "data": [
+                {
+                    "key": "meaning",
+                    "value": 20
+                },
+                {
+                    "key": "dump her",
+                    "value": "sure"
+                }
+            ]
+        },
+        "response": {
+            "status": "success",
+            "event": "create",
             "data": {
-                "key": "testing",
-                "value": "trumph here now"
+                "meaning": 20,
+                "dump her": "sure"
+            }
+        },
+        "description": ""
+    },
+    "8": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "meaning"
             },
             "options": {
                 "like": true,
@@ -180,64 +216,91 @@
         },
         "response": {
             "status": "success",
-            "event": "create",
-            "data": {}
-        },
-        "description": ""
-    },
-    "8": {
-        "payload": {
             "event": "get",
             "data": {
-                "key": "testing"
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "get",
-            "data": {
-                "testing": "for alues"
+                "meaning": 20
             }
         },
         "description": ""
     },
     "9": {
         "payload": {
-            "event": "set",
+            "event": "get",
             "data": {
-                "key": "testing",
-                "value": "triumph here"
+                "key": "dump her"
+            },
+            "options": {
+                "like": true,
+                "regex": false
             }
         },
         "response": {
             "status": "success",
-            "event": "set",
+            "event": "get",
             "data": {
-                "testing": "triumph here"
-            }
-        },
-        "description": ""
-    },
-    "10": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "read",
-            "data": {
-                "testing": "triumph here"
+                "dump her": "sure"
             }
         },
         "description": ""
     },
     "11": {
         "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "meaning"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "meaning",
+                    "value": 20
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "12": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                },
+                {
+                    "key": "testings",
+                    "value": "triumph here"
+                }
+            ],
+            "count": 2
+        },
+        "description": ""
+    },
+    "13": {
+        "payload": {
             "event": "dump",
-            "data": {},
+            "data": {
+                "key": "score"
+            },
             "options": {
                 "like": true,
                 "regex": false
@@ -248,12 +311,13 @@
             "event": "dump",
             "data": {
                 "12": 20000,
+                "122": "20000",
                 "879898": [
                     "test",
                     "for",
                     "alues"
                 ],
-                "testing": "triumph here",
+                "testing": "for alues",
                 "123tsj": "testing",
                 "store": [
                     "vaue",
@@ -278,7 +342,53 @@
                     95,
                     88,
                     92
-                ]
+                ],
+                "testings": "triumph here",
+                "meaning": 20,
+                "dump her": "sure"
+            }
+        },
+        "description": ""
+    },
+    "14": {
+        "payload": {
+            "event": "create",
+            "data": [
+                {
+                    "key": "valuation",
+                    "value": "next"
+                }
+            ],
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "create",
+            "data": {
+                "valuation": "next"
+            }
+        },
+        "description": ""
+    },
+    "15": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "valuation"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "get",
+            "data": {
+                "valuation": "next"
             }
         },
         "description": ""

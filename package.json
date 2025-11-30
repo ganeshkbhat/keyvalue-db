@@ -20,7 +20,7 @@
   "dependencies": {
     "express": "^4.21.2",
     "hasher-apis": "^0.2.7",
-    "json-faster": "^1.8.2",
+    "json-faster": "^2.0.0",
     "shellflags": "^1.1.0",
     "supertest": "^7.1.4",
     "ws": "^8.18.3"

@@ -1,0 +1,284 @@
+{
+    "0": {
+        "payload": {
+            "event": "init",
+            "data": {
+                "12": 20000,
+                "879898": [
+                    "test",
+                    "for",
+                    "alues"
+                ],
+                "testing": "for alues",
+                "123tsj": "testing",
+                "store": [
+                    "vaue",
+                    "loads",
+                    10
+                ],
+                "user_id": 101,
+                "username": "alpha_user",
+                "status": "Active",
+                "tags": [
+                    "premium",
+                    "new_member",
+                    "verified"
+                ],
+                "location": "New York City",
+                "last_login": "2025-11-10",
+                "settings": {
+                    "theme": "dark",
+                    "notifications": true
+                },
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {
+                "12": 20000,
+                "879898": [
+                    "test",
+                    "for",
+                    "alues"
+                ],
+                "testing": "for alues",
+                "123tsj": "testing",
+                "store": [
+                    "vaue",
+                    "loads",
+                    10
+                ],
+                "user_id": 101,
+                "username": "alpha_user",
+                "status": "Active",
+                "tags": [
+                    "premium",
+                    "new_member",
+                    "verified"
+                ],
+                "location": "New York City",
+                "last_login": "2025-11-10",
+                "settings": {
+                    "theme": "dark",
+                    "notifications": true
+                },
+                "scores": [
+                    95,
+                    88,
+                    92
+                ]
+            }
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "init",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "load",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "set",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "update",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "delete",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "create",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "get",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "set",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "deletekey",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "set",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "remove",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "get",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "deletekey",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "deletekeys",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "read",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    },
+    "1": {
+        "payload": {
+            "event": "dump",
+            "data": {}
+        },
+        "response": {
+            "status": "success",
+            "event": "init",
+            "data": {}
+        },
+        "description": "1 - init and then run the tests"
+    }
+}

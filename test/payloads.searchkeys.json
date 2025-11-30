@@ -79,30 +79,37 @@
     },
     "1": {
         "payload": {
-            "event": "read",
+            "event": "searchkeys",
             "data": {
                 "key": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
             }
         },
         "response": {
             "status": "success",
-            "event": "read",
-            "data": {
-                "testing": "for alues"
-            }
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
         },
         "description": ""
     },
     "2": {
         "payload": {
-            "event": "dumpkey",
+            "event": "searchkeys",
             "data": {
-                "key": "testing"
+                "keys": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
             }
         },
         "response": {
             "status": "success",
-            "event": "dumpkey",
+            "event": "searchkeys",
             "data": [
                 {
                     "key": "testing",
@@ -115,233 +122,297 @@
     },
     "3": {
         "payload": {
-            "event": "update",
+            "event": "searchkeys",
             "data": {
-                "testing": "value112"
+                "keys": [
+                    "testing"
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
             }
         },
         "response": {
             "status": "success",
-            "event": "update",
-            "data": {
-                "testing": "value112"
-            }
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
         },
         "description": ""
     },
     "4": {
         "payload": {
-            "event": "get",
+            "event": "searchkeys",
             "data": {
-                "key": "testing"
+                "keys": [
+                    "testing"
+                ]
             }
         },
         "response": {
             "status": "success",
-            "event": "get",
-            "data": {
-                "testing": "value112"
-            }
-        },
-        "description": ""
-    },
-    "5": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "read",
-            "data": {
-                "testing": "value112"
-            }
-        },
-        "description": ""
-    },
-    "6": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "read",
-            "data": {
-                "testing": "value112"
-            }
-        },
-        "description": ""
-    },
-    "7": {
-        "payload": {
-            "event": "delete",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "delete",
-            "data": {
-                "key": "testing"
-            },
-            "message": "Item with key \"testing\" successfully removed."
-        },
-        "description": ""
-    },
-    "8": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "read",
-            "message": "Item with key \"testing\" not found."
-        },
-        "description": ""
-    },
-    "9": {
-        "payload": {
-            "event": "deletekey",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "deletekey",
-            "data": {
-                "key": "testing"
-            },
-            "message": "Item with key \"testing\" successfully removed."
-        },
-        "description": ""
-    },
-    "10": {
-        "payload": {
-            "event": "get",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "get",
-            "message": "Item with key \"testing\" not found."
-        },
-        "description": ""
-    },
-    "11": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "read",
-            "message": "Item with key \"testing\" not found."
-        },
-        "description": ""
-    },
-    "12": {
-        "payload": {
-            "event": "read",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "read",
-            "message": "Item with key \"testing\" not found."
-        },
-        "description": ""
-    },
-    "13": {
-        "payload": {
-            "event": "get",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "get",
-            "message": "Item with key \"testing\" not found."
-        },
-        "description": ""
-    },
-    "14": {
-        "payload": {
-            "event": "dumpkey",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "dumpkey",
+            "event": "searchkeys",
             "data": [],
             "count": 0
         },
         "description": ""
     },
-    "15": {
+    "5": {
         "payload": {
-            "event": "dump",
+            "event": "searchkeys",
             "data": {
-                "key": "testing"
+                "keys": "testing"
             },
             "options": {
                 "like": true,
                 "regex": false
             }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "6": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "key": "testing"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
+        }
+    },
+    "7": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": [
+                    "testing"
+                ]
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        }
+    },
+    "8": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": "testing"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        }
+    },
+    "9": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": "12"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "12",
+                    "value": 20000
+                }
+            ],
+            "count": 1
+        }
+    },
+    "10": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "key": "12"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
+        }
+    },
+    "11": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "key": "score"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
+        }
+    },
+    "12": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": "scores"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "scores",
+                    "value": [
+                        95,
+                        88,
+                        92
+                    ]
+                }
+            ],
+            "count": 1
+        }
+    },
+    "13": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "key": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
+        }
+    },
+    "14": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "key": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [],
+            "count": 0
+        }
+    },
+    "15": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        }
+    },
+    "16": {
+        "payload": {
+            "event": "searchkeys",
+            "data": {
+                "keys": "test"
+            },
+            "options": {
+                "like": true,
+                "regex": true
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "searchkeys",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "for alues"
+                }
+            ],
+            "count": 1
+        }
+    },
+    "17": {
+        "payload": {
+            "event": "dump",
+            "data": {}
         },
         "response": {
             "status": "success",
@@ -353,6 +424,7 @@
                     "for",
                     "alues"
                 ],
+                "testing": "for alues",
                 "123tsj": "testing",
                 "store": [
                     "vaue",
@@ -379,7 +451,6 @@
                     92
                 ]
             }
-        },
-        "description": ""
+        }
     }
 }

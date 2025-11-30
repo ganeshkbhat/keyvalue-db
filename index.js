@@ -137,10 +137,10 @@ function startServer(port, hostname = "localhost", options = {}, apps = [], midd
                     // // event name is "set"
                     // // data values are key, value pairs in as an array
                     // // {"event": "create", "data": [{"key": 12, "value": "test"}, {"key": "12sdf", "value": "test"}]}
-                    // // {"event": "create", "data": [{ "key": "100", "value": "testing" }, { "key": "10minimum0", "value": "testing" } ]}
-                    if (!data.key || !data.value) {
-                        return res.status(400).json({ status: 'error', event: event, message: 'Missing required fields: "key" (string) and "value" (object) for "set" event.' });
-                    }
+                    // // // {"event": "create", "data": [{ "key": "100", "value": "testing" }, { "key": "10minimum0", "value": "testing" } ]}
+                    // if (!data.key || !data.value) {
+                    //     return res.status(400).json({ status: 'error', event: event, message: 'Missing required fields: "key" (string) and "value" (object) for "set" event.' });
+                    // }
                     try {
                         let result = {}
                         if (Array.isArray(data) && data.length) {
@@ -149,11 +149,12 @@ function startServer(port, hostname = "localhost", options = {}, apps = [], midd
                                 // data[i].value = ensureNumeric(data[i].value)
                                 result[data[i].key] = data[i].value
                                 app.dataManager.write(data[i].key, data[i].value)
+                                console.log("data[i].key, data[i].value :", data[i].key, data[i].value)
                             }
                         }
                         return res.status(200).json({ status: 'success', event: event, data: result });
                     } catch (e) {
-                        return res.status(400).json({ status: 'error', event: event, message: 'Missing required fields: "key" (string) and "value" (object) for "set" event.' });
+                        return res.status(400).json({ status: 'error', event: event, message: 'Missing required fields: "key" (string) and "value" (object) for "create" event.' });
                     }
                 case 'get':
                     // read: Uses 'read' or 'get' or 'getkey' as the event name

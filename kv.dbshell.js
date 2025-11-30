@@ -55,7 +55,7 @@ const shellParser = require("./kv.shellparser");
  * @param {object} payload The JavaScript object to send as the request body.
  * @returns {Promise<string>} A Promise that resolves with the response body as a string.
  */
-function makePostRequest(host, port, path, payload) {
+function makePostRequest(host, port, path = "/", payload) {
     // Stringify the payload to send it as JSON
     const postData = JSON.stringify(payload);
 
@@ -168,7 +168,7 @@ function Shell(port, ip, certkey, username, password) {
         // set a http command for get feature for JSON.manager
         // console.log(`Get key: ${query} - `, manager.get(key))
         console.log(key) //, manager.search({ event: 'read', }))
-        return await makePostRequest(ip, port, path = "/", payload = { event: 'read', data: { k: key } })
+        return await makePostRequest(ip, port, path, payload = { event: 'read', data: { k: key } })
     };
 
     const init = function (jsonValues = {}) {
@@ -436,7 +436,8 @@ var dataLoad = results["-dt"] = results["-dt"] || "{}";
 var mode = results["-s"] = results["-s"] || "shell";
 
 
-// Shell()
+// // run the db shell
+let s =  Shell()
 
 module.exports = Shell
 

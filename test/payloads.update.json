@@ -143,15 +143,17 @@
     },
     "5": {
         "payload": {
-            "event": "get",
+            "event": "update",
             "data": {
-                "key": "testing"
+                "12": "testing"
             }
         },
         "response": {
-            "status": "error",
-            "event": "get",
-            "message": "Item with key \"testing\" not found."
+            "status": "success",
+            "event": "update",
+            "data": {
+                "12": "testing"
+            }
         },
         "description": ""
     },
@@ -297,7 +299,7 @@
             "status": "success",
             "event": "dump",
             "data": {
-                "12": 20000,
+                "12": "testing",
                 "879898": [
                     "test",
                     "for",

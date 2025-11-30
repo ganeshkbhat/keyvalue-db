@@ -130,6 +130,55 @@
         "payload": {
             "event": "set",
             "data": {
+                "key": "122",
+                "value": "20000"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "set",
+            "data": {
+                "122": "20000"
+            }
+        },
+        "description": ""
+    },
+    "5": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "122"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "get",
+            "data": {
+                "122": "20000"
+            }
+        },
+        "description": ""
+    },
+    "6": {
+        "payload": {
+            "event": "read",
+            "data": {
+                "key": "122"
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "read",
+            "data": {
+                "122": "20000"
+            }
+        },
+        "description": ""
+    },
+    "7": {
+        "payload": {
+            "event": "set",
+            "data": {
                 "keys": "testing"
             }
         },
@@ -140,7 +189,7 @@
         },
         "description": ""
     },
-    "5": {
+    "8": {
         "payload": {
             "event": "get",
             "data": {
@@ -160,7 +209,28 @@
         },
         "description": ""
     },
-    "6": {
+    "9": {
+        "payload": {
+            "event": "set",
+            "data": {
+                "key": "testing",
+                "value": "value123"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "set",
+            "data": {
+                "testing": "value123"
+            }
+        },
+        "description": ""
+    },
+    "10": {
         "payload": {
             "event": "set",
             "data": {
@@ -178,49 +248,7 @@
         },
         "description": ""
     },
-    "7": {
-        "payload": {
-            "event": "dumpkey",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "success",
-            "event": "dumpkey",
-            "data": [
-                {
-                    "key": "testing",
-                    "value": "triumph here"
-                }
-            ],
-            "count": 1
-        },
-        "description": ""
-    },
-    "8": {
-        "payload": {
-            "event": "dumkeys",
-            "data": {
-                "key": "testing"
-            },
-            "options": {
-                "like": true,
-                "regex": false
-            }
-        },
-        "response": {
-            "status": "error",
-            "event": "dumkeys",
-            "message": "Unknown event type: dumkeys"
-        },
-        "description": ""
-    },
-    "9": {
+    "11": {
         "payload": {
             "event": "dumpkeys",
             "data": {
@@ -238,7 +266,31 @@
         },
         "description": ""
     },
-    "10": {
+    "12": {
+        "payload": {
+            "event": "dumpkey",
+            "data": {
+                "key": "testing"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "dumpkey",
+            "data": [
+                {
+                    "key": "testing",
+                    "value": "value123"
+                }
+            ],
+            "count": 1
+        },
+        "description": ""
+    },
+    "13": {
         "payload": {
             "event": "dump",
             "data": {
@@ -254,12 +306,13 @@
             "event": "dump",
             "data": {
                 "12": 20000,
+                "122": "20000",
                 "879898": [
                     "test",
                     "for",
                     "alues"
                 ],
-                "testing": "triumph here",
+                "testing": "value123",
                 "123tsj": "testing",
                 "store": [
                     "vaue",
@@ -289,10 +342,13 @@
         },
         "description": ""
     },
-    "11": {
+    "14": {
         "payload": {
-            "event": "dump",
-            "data": {},
+            "event": "set",
+            "data": {
+                "key": "valuation",
+                "value": "next"
+            },
             "options": {
                 "like": true,
                 "regex": false
@@ -300,40 +356,29 @@
         },
         "response": {
             "status": "success",
-            "event": "dump",
+            "event": "set",
             "data": {
-                "12": 20000,
-                "879898": [
-                    "test",
-                    "for",
-                    "alues"
-                ],
-                "testing": "triumph here",
-                "123tsj": "testing",
-                "store": [
-                    "vaue",
-                    "loads",
-                    10
-                ],
-                "user_id": 101,
-                "username": "alpha_user",
-                "status": "Active",
-                "tags": [
-                    "premium",
-                    "new_member",
-                    "verified"
-                ],
-                "location": "New York City",
-                "last_login": "2025-11-10",
-                "settings": {
-                    "theme": "dark",
-                    "notifications": true
-                },
-                "scores": [
-                    95,
-                    88,
-                    92
-                ]
+                "valuation": "next"
+            }
+        },
+        "description": ""
+    },
+    "15": {
+        "payload": {
+            "event": "get",
+            "data": {
+                "key": "valuation"
+            },
+            "options": {
+                "like": true,
+                "regex": false
+            }
+        },
+        "response": {
+            "status": "success",
+            "event": "get",
+            "data": {
+                "valuation": "next"
             }
         },
         "description": ""

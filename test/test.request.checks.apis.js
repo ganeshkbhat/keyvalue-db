@@ -37,19 +37,19 @@ describe('API Sequence Testing: Payloads and Expected Responses', () => {
         // "./payloads.deletekeys.json",
         // // handled - remove 
         // "./payloads.remove.json",
-        // // handled - read  (NOT WORKING, Error)
-        "./payloads.read.json",
-        // // handled - create  (NOT WORKING, Error)
+        // // handled - read 
+        // "./payloads.read.json",
+        // // handled - create 
         // "./payloads.create.json",
-        // // handled -  set  (NOT WORKING, Error)
+        // // handled - set 
         // "./payloads.set.json",
-        // // handled -  
+        // // handled - update
         // "./payloads.update.json",
-        // // handled - 
+        // // handled - search
         // "./payloads.search.json",
-        // // handled - 
-        // "./payloads.searchkeyvalue.json",
-        // // handled - 
+        // // handled - searchkey
+        // "./payloads.searchkeys.json",
+        // // handled - searchvalue
         // "./payloads.searchvalue.json",
     ]
     allTestScenarios.forEach(scenario => {
