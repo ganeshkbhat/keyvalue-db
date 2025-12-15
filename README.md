@@ -95,6 +95,28 @@ example:
 ### Shell Commands
 
 
+| Command | Alias | Syntax | Description |
+| :--- | :--- | :--- | :--- |
+| `set` | `write` | `set <key> <value>` | Sets a single key with a string, number, or JSON value. **Note:** The value is everything after the key and first space. |
+| `get` | `read` | `get <key>` | Retrieves and prints the value associated with the specified key. |
+| `del` | `deletekey` | `del <key>` | Deletes the key-value pair from the store. |
+| `has` | `hasKey` | `has <key>` | Checks if a key exists in the store (returns `true` or `false`). |
+| `init` | | `init <JSON>` or `init -f <filename>` | **REPLACES** the entire store with the provided JSON object or the contents of a local file. |
+| `update` | `load` | `update <JSON>` or `update -f <filename>` | **MERGES** the provided JSON object or file contents into the existing store. |
+| `clear` | | `clear` | Clears the entire in-memory store (same as `init {}`). |
+| `search` | | `search <criteria>` | Searches for the criteria in **Keys AND Values**. |
+| `searchkeys` | | `searchkeys <criteria>` | Searches for the criteria in **Keys Only**. |
+| `searchvalues` | | `searchvalues <criteria>` | Searches for the criteria in **Values Only**. |
+| `dump` | | `dump` | Retrieves the entire store data and prints it to the shell console. |
+| `dump` | | `dump -f <filename>` | Instructs the **server** to save the current store to the specified filename on the server's disk. |
+| `lock` | | `lock` | Checks the status of the server's concurrency lock. |
+| `setlock` | | `setlock <true/false>` | Manually sets the concurrency lock state. |
+| `droplock` | | `droplock` | Unlocks the store and processes any waiting queued operations. |
+| `help` | | `help` | Displays the help menu. |
+| `exit` | `quit` | `exit` | Disconnects the shell client and quits. |
+
+
+
 ###### set
 \> `set key value`
 
@@ -120,21 +142,21 @@ example:
 
 
 ###### search
-\> `search -v string`
+\> `searchvalues string`
 
-*example\>* `search -v 10`
-
-
-###### search
-\> `search -k string`
-
-*example\>* `search -k test`
+*example\>* `searchvalues 10`
 
 
 ###### search
-\> `search -kv string`
+\> `searchkeys string`
 
-*example\>* `search -kv test`
+*example\>* `searchkeys test`
+
+
+###### search
+\> `search string`
+
+*example\>* `search test`
 
 
 ###### load
