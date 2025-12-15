@@ -204,7 +204,7 @@ todo: add all features
 
 *example\>* `dump -f "./dump/filename.json"`
 
-
+<!-- 
 
 ### Client API - node.js
 
@@ -537,7 +537,7 @@ client.searchKeyValue(msg, opts)
 { event : , query : { key : , value : }, options :  }
 
 { event : , query : { key : , value : }, options : , type :  }
-
+ -->
 
 
 
