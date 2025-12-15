@@ -110,9 +110,9 @@ todo: add all features
 
 
 ###### del
-\> `del `
+\> `del <key>`
 
-*example\>* `get test`
+*example\>* `del test`
 
 
 ###### has
