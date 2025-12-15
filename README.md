@@ -96,61 +96,69 @@ todo: add all features
 
 
 ###### set
-\> `set key value`
+\> `set <key> <value>`
+
+*example\>* `set testvalue`
 
 *example\>* `set test 10`
 
 
 ###### get
-\> `get key`
+\> `get <key>`
+
+*example\>* `get test`
+
+
+###### del
+\> `del `
 
 *example\>* `get test`
 
 
 ###### has
-\> `has key`
+\> `has <key>`
 
 *example\>* `has test`
 
 
 ###### search
-\> `search string`
+\> `search <string>`
 
 *example\>* `search test`
 
 
 ###### search
-\> `searchvalues string`
+\> `searchvalues <string>`
 
 *example\>* `searchvalues 10`
 
 
 ###### search
-\> `searchkeys string`
+\> `searchkeys <string>`
 
 *example\>* `searchkeys test`
 
 
 ###### search
-\> `search string`
+\> `search <string>`
 
 *example\>* `search test`
 
 
 ###### load
-\> `load -f filename`
+\> `load -f <filename>`
 
 *example\>* `load -f "./dump/filename.json"`
 
 
 ###### load
-\> `load jsonobject`
+\> `load <jsonobject>`
 
 *example\>* `load "{'test': 10}"`
 
 
 ###### read
-\> `read key`
+\> `read <key>`
 
 *example\>* `read test`
 
@@ -162,37 +170,37 @@ todo: add all features
 
 
 ###### init
-\> `init -f filename`
+\> `init -f <filename>`
 
 *example\>* `init -f "./dump/filename.json"`
 
 
 ###### init
-\> `init jsonobject`
+\> `init <jsonobject>`
 
 *example\>* `init "{'test': 10}"`
 
 
 ###### update
-\> `update -f filename`
+\> `update -f <filename>`
 
 *example\>* `update -f "./dump/filename.json"`
 
 
 ###### update
-\> `update jsonobject`
+\> `update <jsonobject>`
 
 *example\>* `update "{"test": 10}"`
 
 
 ###### del
-\> `del key`
+\> `del <key>`
 
 *example\>* `del test`
 
 
 ###### dump
-\> `dump -f "filename/within/quotes"`
+\> `dump -f "<filename/within/quotes>"`
 
 *example\>* `dump -f "./dump/filename.json"`
 
