@@ -17,11 +17,6 @@ please note: `redis-like` is an inference most of the shell commands are like re
 - any programming language that supports `tcp tls`, `tcp mtls` requests can be used as a client *[todo add request structure and parameters to docs]*
 
 
-```
-node index.js -h=localhost -p=7000 --mode server -dt=30m -log=app.log -cert=server.crt -key=server.key -ca-cert=ca.crt -l=store_dump.json
-```
-
-
 ### 🖥️ Server Mode Prefixes
 
 The following command-line arguments are used when running the application in server mode (`-s server`):
@@ -41,11 +36,9 @@ The following command-line arguments are used when running the application in se
 | `--init-data` | `initData` | `null` | JSON string to initialize the store with upon startup. |
 
 
-
 ```
-node index.js -h=localhost -p=7000 --mode shell -log=app.log -cert=client.crt -key=client.key -ca-cert=ca.crt  
+node index.js -h=localhost -p=7000 --mode server -dt=30m -log=app.log -cert=server.crt -key=server.key -ca-cert=ca.crt -l=store_dump.json
 ```
-
 
 
 ### 💻 Shell Client Mode Prefixes
@@ -60,6 +53,11 @@ The following command-line arguments are used when running the application in sh
 | `-ca`, `--ca-cert` | `caCert` | `ca.crt` | **Mandatory:** Path to the Certificate Authority (CA) file needed to validate the **server's** certificate. |
 | `-c`, `--cert` | `cert` | `server.crt` | **Optional (for mTLS):** Path to the client's TLS certificate. |
 | `-k`, `--key` | `key` | `server.key` | **Optional (for mTLS):** Path to the client's private key. |
+
+
+```
+node index.js -h=localhost -p=7000 --mode shell -log=app.log -cert=client.crt -key=client.key -ca-cert=ca.crt  
+```
 
 
 todo: add all features
