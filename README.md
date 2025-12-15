@@ -94,6 +94,7 @@ todo: add all features
 | `exit` | `quit` | `exit` | Disconnects the shell client and quits. |
 
 
+-----------------------------
 
 ###### set
 \> `set <key> <value>`
@@ -203,6 +204,8 @@ todo: add all features
 \> `dump -f "<filename/within/quotes>"`
 
 *example\>* `dump -f "./dump/filename.json"`
+
+-----------------------------
 
 <!-- 
 
