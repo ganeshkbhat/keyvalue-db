@@ -44,7 +44,6 @@ The server manages the database state in memory and handles periodic synchroniza
 
 **Example Command:**
 ```bash
-# node tlite.js -h localhost -p 8000 -dt 5m --dump-file production.sqlite -cert server.crt -key server.key -ca-cert ca.crt
 node index.js --mode db -h localhost -p 8000 -dt 5m --dump-file data.sqlite -cert server.crt -key server.key -ca-cert ca.crt
 ```
 
@@ -67,7 +66,6 @@ The client provides a secure interactive shell. The prompt is dynamically genera
 
 **Startup Example:**
 ```bash
-# node index.js --mode shell -p 8000 -h localhost -c client.crt -k client.key -ca-cert ca.crt 
 node index.js --mode shell -p 8000 -h localhost -c client.crt -k client.key -ca ca.crt
 ```
 
