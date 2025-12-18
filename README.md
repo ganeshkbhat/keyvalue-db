@@ -41,7 +41,7 @@ The server manages the database state in memory and handles periodic synchroniza
 | `-ca` | Path to CA certificate. | `ca.crt` |
 | `-c`, `--cert` | Path to Server certificate. | `server.crt` |
 | `-k`, `--key` | Path to Server private key. | `server.key` |
-| `--mode` | `--mode db` | will start in database mode |
+| `--mode`, `-s` |  `--mode db` will start in database mode | `shell` |
 
 **Example Command:**
 ```bash
@@ -64,7 +64,7 @@ The client provides a secure interactive shell. The prompt is dynamically genera
 | `-ca` | Path to the CA certificate for server verification. | `ca.crt` |
 | `-c` | Path to the Client certificate for authentication. | `client.crt` |
 | `-k` | Path to the Client private key. | `client.key` |
-| `--mode` `-s`  `--mode shell` | will start in databse shell mode | shell | 
+| `--mode` , `-s` | will start in database shell mode | `--mode shell` | 
 
 
 **Startup Example:**
