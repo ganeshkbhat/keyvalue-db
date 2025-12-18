@@ -1,209 +1,248 @@
-'use strict';
+const tls = require('tls');
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+const os = require('os');
+const sqlite3 = require('sqlite3').verbose();
 
-const fs = require("fs");
-const path = require("path");
-const tls = require("tls");
-const readline = require("readline");
+// --- ARGUMENT PARSING ---
+const argsList = process.argv.slice(2);
+const getArg = (flags, defaultValue) => {
+    for (let i = 0; i < argsList.length; i++) {
+        if (flags.includes(argsList[i]) && argsList[i + 1]) return argsList[i + 1];
+    }
+    return defaultValue;
+};
 
-/**
- * SECTION 1: YOUR CORE LOGIC (From index.js)
- * Using your exact JsonManager factory function.
- */
-function JsonManager() {
-    var data = {};
-    var flag = false;
-    var eventPause = [];
+const MODE = getArg(['-s', '--mode'], 'db').toLowerCase(); // 'db' or 'shell'
+const PORT = parseInt(getArg(['-p', '--port'], '9999'), 10);
+const HOST = getArg(['-ip', '-h', '--host'], MODE === 'db' ? '0.0.0.0' : 'localhost');
+const CA_FILE = getArg(['-ca'], 'ca.crt');
+const CERT_FILE = getArg(['-c'], 'server.crt'); // Uses client.crt in shell mode below
+const KEY_FILE = getArg(['-k'], 'server.key');   // Uses client.key in shell mode below
 
-    function hasKey(key) { return !!data.hasOwnProperty(key) || !!data[key]; }
-    function getKey(key) { return (!!hasKey(key)) ? data[key] : undefined; }
-
-    function set(key, value) {
-        if (flag === false) {
-            flag = true;
-            data[key] = value;
-            flag = false;
-            return "OK";
-        } else {
-            eventPause.push({ event: "set", key, value });
-            return "LOCKED_QUEUED";
+// --- SERVER (DB) MODE ---
+if (MODE === 'db') {
+    function parseDuration(str) {
+        const regex = /(-?\d+)([hms])/g;
+        let totalSeconds = 0, match, found = false;
+        while ((match = regex.exec(str)) !== null) {
+            found = true;
+            const value = parseInt(match[1], 10);
+            const unit = match[2];
+            if (unit === 'h') totalSeconds += value * 3600;
+            if (unit === 'm') totalSeconds += value * 60;
+            if (unit === 's') totalSeconds += value;
         }
+        return found ? totalSeconds : (parseInt(str, 10) || 60);
     }
 
-    function deleteKey(key) {
-        if (flag === false) {
-            flag = true;
-            const res = delete data[key];
-            flag = false;
-            return res;
-        }
-        return "LOCKED";
+    const DB_PATH = getArg(['--dump-file'], null) || getArg(['-l', '--load'], path.join(__dirname, 'data.sqlite'));
+    const DT_RAW = getArg(['-dt'], '60s');
+
+    let globalLock = false;
+    const commandQueue = [];
+
+    function processQueue() {
+        if (globalLock || commandQueue.length === 0) return;
+        const task = commandQueue.shift();
+        executeCommand(task.cmd, task.args, task.socket);
     }
 
-    function isMatch(term, criteria, options) {
-        const termStr = String(term).toLowerCase();
-        const criteriaStr = String(criteria).toLowerCase();
-        if (options.regex) {
-            try { return new RegExp(criteria, 'i').test(String(term)); } catch (e) { return false; }
-        }
-        return options.like ? termStr.includes(criteriaStr) : termStr === criteriaStr;
-    }
+    const memDb = new sqlite3.Database(':memory:');
+    let currentTable = 'store';
 
-    function searchKeyValues(criteria, options = { like: true, regex: false }) {
-        const results = [];
-        for (const [key, value] of Object.entries(data)) {
-            if (isMatch(key, criteria, options) || isMatch(value, criteria, options)) {
-                results.push({ key, value });
-            }
-        }
-        return results;
-    }
-
-    function load(obj = {}) {
-        if (flag === false) {
-            flag = true;
-            data = { ...data, ...obj };
-            flag = false;
-            return "OK";
-        }
-        return "LOCKED";
-    }
-
-    return {
-        set, getKey, get: getKey, deleteKey, 
-        init: (obj) => { data = obj; return "OK"; },
-        load, search: searchKeyValues,
-        dump: () => ({ ...data })
-    };
-}
-
-/**
- * SECTION 2: CONFIGURATION & PREFIXES (From README.md)
- */
-const prefixDefs = [
-    { prefixes: ['-ip', '-h', '--host'], key: 'ip', default: '127.0.0.1' },
-    { prefixes: ['-p', '--port'], key: 'port', default: 9999, type: 'number' },
-    { prefixes: ['-s', '--mode'], key: 'mode', default: 'server' },
-    { prefixes: ['-ca', '--ca-cert'], key: 'caCert', default: 'ca.crt' },
-    { prefixes: ['-c', '--cert'], key: 'cert', default: 'server.crt' },
-    { prefixes: ['-k', '--key'], key: 'key', default: 'server.key' },
-    { prefixes: ['--dump-file'], key: 'dumpFile', default: 'store_dump.json' },
-    { prefixes: ['--users-file'], key: 'usersFile', default: 'users.json' }
-];
-
-function parseArgs() {
-    const args = process.argv.slice(2);
-    const config = {};
-    prefixDefs.forEach(d => {
-        config[d.key] = d.default;
-        for (let i = 0; i < args.length; i++) {
-            if (d.prefixes.includes(args[i])) {
-                config[d.key] = (d.type === 'number') ? parseInt(args[i+1]) : args[i+1];
-            }
+    memDb.serialize(() => {
+        memDb.run(`CREATE TABLE IF NOT EXISTS ${currentTable} (key TEXT PRIMARY KEY, value TEXT)`);
+        if (fs.existsSync(DB_PATH)) {
+            memDb.run(`ATTACH DATABASE '${DB_PATH}' AS disk`, (err) => {
+                if (!err) {
+                    memDb.run(`INSERT OR IGNORE INTO main.${currentTable} SELECT * FROM disk.${currentTable}`, () => {
+                        memDb.run(`DETACH DATABASE disk`, () => {
+                            console.log(`[*] Data loaded. Disk file UNLOCKED.`);
+                        });
+                    });
+                }
+            });
         }
     });
-    return config;
-}
 
-const globalConfig = parseArgs();
-const dataStore = JsonManager(); // Main database
-const userStore = JsonManager(); // Auth database
-const activeSessions = new Map();
+    const persistToDisk = (targetPath = DB_PATH, socket = null, cmd = 'auto-sync') => {
+        if (fs.existsSync(targetPath)) { try { fs.unlinkSync(targetPath); } catch(e) {} }
+        memDb.run(`VACUUM INTO '${targetPath}'`, (err) => {
+            if (socket) sendJson(socket, { status: err ? "error" : "success", command: cmd, message: err ? err.message : `Persisted.` });
+        });
+    };
 
-/**
- * SECTION 3: COMMAND ROUTER & MTLS LOGIC
- */
-async function handleRequest(raw, socket) {
-    try {
-        const { command, args = [] } = JSON.parse(raw);
-        const cert = socket.getPeerCertificate();
-        const cn = cert && cert.subject ? cert.subject.CN : socket.remoteAddress;
+    setInterval(persistToDisk, parseDuration(DT_RAW) * 1000);
 
-        const cmd = command.toLowerCase();
+    const server = tls.createServer({
+        key: fs.readFileSync(KEY_FILE), cert: fs.readFileSync(CERT_FILE), ca: fs.readFileSync(CA_FILE),
+        requestCert: true, rejectUnauthorized: true
+    }, (socket) => {
+        socket.cursor = { results: [], limit: 0, index: 0, total: 0 };
+        socket.on('data', (data) => {
+            try {
+                const req = JSON.parse(data.toString());
+                commandQueue.push({ cmd: req.cmd, args: req.args || {}, socket });
+                processQueue();
+            } catch (e) { sendJson(socket, { status: "error", message: "Malformed JSON" }); }
+        });
+        socket.on('error', () => {});
+    });
 
-        // 1. Auth Bypass for Login
-        if (cmd === 'login') {
-            const [user, pass] = args;
-            const userData = userStore.get(user); // Calls getKey
-            if (userData && userData.password === pass) {
-                activeSessions.set(cn, { user });
-                return { status: "OK", message: `Logged in as ${user}` };
+    function sendJson(socket, obj) {
+        if (socket && !socket.destroyed && socket.writable) socket.write(JSON.stringify(obj) + '\n');
+    }
+
+    function executeCommand(cmd, args, socket) {
+        const command = cmd ? cmd.toLowerCase() : '';
+        const writeCmds = ['set', 'delete', 'clear', 'init', 'load', 'sql'];
+        if (writeCmds.includes(command)) globalLock = true;
+
+        const finalize = (err, result) => {
+            if (err) sendJson(socket, { status: "error", command, message: err.message });
+            else if ((command === 'get' || command === 'delete') && result === undefined) {
+                sendJson(socket, { status: "error", command, message: "Key not found" });
+            } else {
+                sendJson(socket, { status: "success", command, data: (result === undefined || result === null) ? [] : result });
             }
-            return { status: "ERROR", message: "Invalid credentials" };
-        }
-
-        // 2. Authorization Check
-        if (!activeSessions.has(cn)) {
-            return { status: "ERROR", message: "Unauthorized. Please login." };
-        }
-
-        // 3. Command Mapping to your JsonManager
-        const mapping = {
-            'get': 'getKey',
-            'set': 'set',
-            'delete': 'deleteKey',
-            'search': 'search',
-            'load': 'load'
+            globalLock = false; processQueue();
         };
 
-        const target = mapping[cmd] || cmd;
+        if (command === 'next' && socket.cursor.results.length > 0) return sendCursorBatch(socket, finalize);
 
-        if (typeof dataStore[target] === 'function') {
-            const result = dataStore[target](...args);
-            
-            // Fix: Check for undefined return from getKey
-            if (result === undefined && target === 'getKey') {
-                return { status: "NOT_FOUND", message: `Key "${args[0]}" does not exist.` };
-            }
-            
-            return { status: "OK", result };
+        const q = `%${args.q}%`;
+        switch (command) {
+            case 'set': memDb.run(`INSERT OR REPLACE INTO ${currentTable} (key, value) VALUES (?, ?)`, [args.k, args.v], (err) => finalize(err, "OK")); break;
+            case 'get': memDb.get(`SELECT value FROM ${currentTable} WHERE key = ?`, [args.k], finalize); break;
+            case 'delete': 
+                memDb.get(`SELECT key FROM ${currentTable} WHERE key = ?`, [args.k], (err, row) => {
+                    if (!row) return finalize(null, undefined);
+                    memDb.run(`DELETE FROM ${currentTable} WHERE key = ?`, [args.k], (e2) => finalize(e2, "Deleted"));
+                });
+                break;
+            case 'clear': memDb.run(`DELETE FROM ${currentTable}`, (err) => finalize(err, "Cleared")); break;
+            case 'use':
+                const target = (args.k || 'store').replace(/[^a-z0-9_]/gi, '');
+                memDb.run(`CREATE TABLE IF NOT EXISTS ${target} (key TEXT PRIMARY KEY, value TEXT)`, (err) => {
+                    if (!err) currentTable = target;
+                    finalize(err, `Switched to ${target}`);
+                });
+                break;
+            case 'search': memDb.all(`SELECT * FROM ${currentTable} WHERE key LIKE ? OR value LIKE ?`, [q, q], finalize); break;
+            case 'searchkey': memDb.all(`SELECT * FROM ${currentTable} WHERE key LIKE ?`, [q], finalize); break;
+            case 'searchvalue': memDb.all(`SELECT * FROM ${currentTable} WHERE value LIKE ?`, [q], finalize); break;
+            case 'init':
+                try {
+                    let data = args.f && fs.existsSync(args.f) ? JSON.parse(fs.readFileSync(args.f)) : (args.data ? JSON.parse(args.data) : null);
+                    memDb.serialize(() => {
+                        memDb.run(`DELETE FROM ${currentTable}`);
+                        const stmt = memDb.prepare(`INSERT INTO ${currentTable} (key, value) VALUES (?, ?)`);
+                        for (const [k, v] of Object.entries(data)) stmt.run(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+                        stmt.finalize(() => finalize(null, "Initialized"));
+                    });
+                } catch(e) { finalize(e); }
+                break;
+            case 'load':
+                if (args.f && fs.existsSync(args.f)) {
+                    const jData = JSON.parse(fs.readFileSync(args.f));
+                    memDb.serialize(() => {
+                        const stmt = memDb.prepare(`INSERT OR REPLACE INTO ${currentTable} (key, value) VALUES (?, ?)`);
+                        for (const [k, v] of Object.entries(jData)) stmt.run(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+                        stmt.finalize(() => finalize(null, "Loaded"));
+                    });
+                } else finalize(new Error("File error"));
+                break;
+            case 'list':
+                memDb.all(`SELECT * FROM ${currentTable}`, (err, rows) => {
+                    if (args.n && !err) {
+                        socket.cursor = { results: rows, limit: parseInt(args.n), index: 0, total: rows.length };
+                        return sendCursorBatch(socket, finalize);
+                    }
+                    finalize(err, rows);
+                });
+                break;
+            case 'dump': persistToDisk(DB_PATH, socket, 'dump'); finalize(null, "Syncing..."); break;
+            case 'sql': memDb.all(args.sql, [], finalize); break;
+            default: globalLock = false; finalize(new Error("Unknown"));
         }
-        return { status: "ERROR", message: `Unknown command: ${command}` };
-    } catch (e) { return { status: "ERROR", message: e.message }; }
-}
+    }
 
-/**
- * SECTION 4: SERVER / CLIENT STARTUP
- */
-function startServer() {
-    const options = {
-        key: fs.readFileSync(globalConfig.key),
-        cert: fs.readFileSync(globalConfig.cert),
-        ca: fs.readFileSync(globalConfig.caCert),
-        requestCert: true, rejectUnauthorized: true
-    };
+    function sendCursorBatch(socket, finalize) {
+        const { results, limit, index, total } = socket.cursor;
+        const batch = results.slice(index, index + limit);
+        socket.cursor.index += batch.length;
+        const hasMore = socket.cursor.index < total;
+        sendJson(socket, { status: "success", command: "list", data: batch, pagination: { progress: `${socket.cursor.index}/${total}`, hasMore } });
+        if (!hasMore) socket.cursor = { results: [], limit: 0, index: 0, total: 0 };
+        globalLock = false; processQueue();
+    }
 
-    tls.createServer(options, (socket) => {
-        socket.on('data', (d) => {
-            handleRequest(d.toString(), socket).then(res => socket.write(JSON.stringify(res) + '\n'));
-        });
-    }).listen(globalConfig.port, globalConfig.ip, () => {
-        console.log(`[SERVER] ${globalConfig.ip}:${globalConfig.port} | Users: ${globalConfig.usersFile}`);
+    process.on('SIGINT', () => { persistToDisk(); setTimeout(() => process.exit(0), 1000); });
+    server.listen(PORT, HOST, () => console.log(`[DB MODE] Listening on ${HOST}:${PORT}`));
+
+} else if (MODE === 'shell') {
+    // --- SHELL (CLIENT) MODE ---
+    const clientCert = getArg(['-c'], 'client.crt');
+    const clientKey = getArg(['-k'], 'client.key');
+
+    let cursorActive = false, pendingCommand = null;
+    const client = tls.connect(PORT, HOST, {
+        key: fs.readFileSync(clientKey), cert: fs.readFileSync(clientCert), ca: fs.readFileSync(CA_FILE),
+        rejectUnauthorized: true
     });
-}
 
-function startShell() {
-    const opts = { ca: fs.readFileSync(globalConfig.caCert), key: fs.readFileSync(globalConfig.key), cert: fs.readFileSync(globalConfig.cert) };
-    const client = tls.connect(globalConfig.port, globalConfig.ip, opts, () => {
-        console.log("CONNECTED. Identify verified via Cert CN.");
-        rl.prompt();
-    });
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.on('line', (line) => {
-        const p = line.trim().split(' ');
-        if (p[0]) client.write(JSON.stringify({ command: p[0], args: p.slice(1) }));
-    });
-    client.on('data', (d) => { console.log(JSON.parse(d.toString())); rl.prompt(); });
-}
+    const getPrompt = () => `${os.userInfo().username}@${HOST}:${PORT}> `;
 
-if (globalConfig.mode === 'server') {
-    // Initialization of user and data stores
-    if (fs.existsSync(globalConfig.usersFile)) {
-        userStore.init(JSON.parse(fs.readFileSync(globalConfig.usersFile, 'utf8')));
-    }
-    if (fs.existsSync(globalConfig.dumpFile)) {
-        dataStore.init(JSON.parse(fs.readFileSync(globalConfig.dumpFile, 'utf8')));
-    }
-    startServer();
-} else {
-    startShell();
+    client.on('connect', () => { 
+        console.log(JSON.stringify({ event: "connected", host: HOST })); 
+        rl.setPrompt(getPrompt()); rl.prompt(); 
+    });
+
+    client.on('data', (data) => {
+        data.toString().trim().split('\n').forEach(line => {
+            if (!line) return;
+            try {
+                const res = JSON.parse(line);
+                console.log(JSON.stringify(res, null, 2));
+                cursorActive = res.pagination ? res.pagination.hasMore : false;
+            } catch (e) { console.log("Raw:", line); }
+        });
+        rl.setPrompt(getPrompt()); rl.prompt();
+    });
+
+    rl.on('line', (line) => {
+        const input = line.trim();
+        if (pendingCommand) {
+            if (input.toLowerCase() === 'y' || input.toLowerCase() === 'yes') client.write(pendingCommand);
+            pendingCommand = null; rl.setPrompt(getPrompt()); rl.prompt(); return;
+        }
+        if (!input && cursorActive) return client.write(JSON.stringify({ cmd: "next" }));
+        if (!input) return rl.prompt();
+        if (input === 'exit' || input === 'quit') return client.end();
+
+        const parts = input.split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+        const findInShell = (flag) => {
+            const idx = parts.indexOf(flag);
+            return idx !== -1 ? parts[idx + 1] : null;
+        };
+        const cmdData = findInShell('-cmd') || (input.match(/-cmd\s+`([^`]+)`/) || [])[1];
+
+        const payload = JSON.stringify({
+            cmd, args: {
+                k: parts[1], v: parts[2], q: parts[1], f: findInShell('-f'),
+                n: findInShell('-n'), sql: cmd === 'sql' ? cmdData : null, data: cmd === 'init' ? cmdData : null
+            }
+        });
+
+        if (cmd === 'clear' || cmd === 'init') {
+            pendingCommand = payload;
+            rl.setPrompt(`\x1b[31m[DANGER]\x1b[0m Confirm ${cmd}? (y/N): `); rl.prompt();
+        } else client.write(payload);
+    });
+
+    client.on('error', (err) => { console.error("Error:", err.message); process.exit(1); });
 }

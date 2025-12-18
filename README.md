@@ -1,5 +1,5 @@
 # keyvalue-jsondb
-*`fast`, `secure`, `private`, and `memory leak resistant` `in-memory` `key-value` `(closure encapsulated)` `json based` `datastore or database` that supports `tcp mtls (tls)`, and a `command shell (without or with [todo] authentication)`*
+*`fast`, `secure`, `private`, and `memory leak resistant` `in-memory` `key-value` `(closure encapsulated)` `js-sqlite based` `datastore or database` that supports `tcp mtls (tls)`, and a `command shell (without or with [todo] authentication)`*
 
 
 ##### indevelopment - do not use in production
@@ -21,23 +21,31 @@ please note: `redis-like` is an inference most of the shell commands are like re
 
 The following command-line arguments are used when running the application in server mode (`-s server`):
 
-| Prefix | Key | Default Value | Description |
-| :--- | :--- | :--- | :--- |
-| `-ip`, `-h`, `--host` | `ip` | `127.0.0.1` | IP address for the server to bind to. |
-| `-p`, `--port` | `port` | `9999` | TCP port the server listens on (Mandatory TLS). |
-| `-s`, `--mode` | `mode` | `server` | Specifies the application mode (must be `server`). |
-| `-c`, `--cert` | `cert` | `server.crt` | **Mandatory:** Path to the server's TLS certificate file. |
-| `-k`, `--key` | `key` | `server.key` | **Mandatory:** Path to the server's private key file. |
-| `-ca`, `--ca-cert` | `caCert` | `ca.crt` | **Mandatory:** Path to the Certificate Authority (CA) file used to verify client certificates (for mTLS). |
-| `--dump-file` | `dumpFile` | `store_dump.json` | The file used for automatic in-memory store synchronization. |
-| `--exit-dump-file` | `exitDumpFile` | *Same as `dumpFile`* | File used for the final dump upon graceful shutdown (SIGINT/SIGTERM). |
-| `--dump-time`, `-dt` | `dumpTime` | `5m` | Time interval for dynamic data dumping (currently redundant due to synchronous write). |
-| `--load-file` | `loadFile` | `null` | File to load data from *if* the `dumpFile` is not present on startup. |
-| `--init-data` | `initData` | `null` | JSON string to initialize the store with upon startup. |
+# TLite Database Documentation
 
+TLite is a lightweight, TLS-encrypted, in-memory SQLite database system designed for speed and security. It features periodic disk persistence, robust search modes, and a dynamic interactive shell.
 
-```
-node index.js -h=localhost -p=7000 --mode server -dt=30m -log=app.log -cert=server.crt -key=server.key -ca-cert=ca.crt -l=store_dump.json
+---
+
+## 1. Server Startup Prefixes (`tlite.js`)
+
+The server manages the database state in memory and handles periodic synchronization to the disk.
+
+| Prefix | Description | Default |
+| :--- | :--- | :--- |
+| `-p`, `--port` | Port to listen on. | `9999` |
+| `-ip`, `-h` | IP address to bind to. | `127.0.0.1` |
+| `-dt` | Persistence interval (e.g., `10s`, `1m`, `1h2m`). | `60s` |
+| `--dump-file` | **Primary** file for startup load and periodic saving. | None |
+| `-l`, `--load` | **Secondary** file (used if `--dump-file` is missing). | `data.sqlite` |
+| `-ca` | Path to CA certificate. | `ca.crt` |
+| `-c`, `--cert` | Path to Server certificate. | `server.crt` |
+| `-k`, `--key` | Path to Server private key. | `server.key` |
+
+**Example Command:**
+```bash
+# node tlite.js -h localhost -p 8000 -dt 5m --dump-file production.sqlite -cert server.crt -key server.key -ca-cert ca.crt
+node index.js --mode db -h localhost -p 8000 -dt 5m --dump-file data.sqlite -cert server.crt -key server.key -ca-cert ca.crt
 ```
 
 
@@ -45,18 +53,22 @@ node index.js -h=localhost -p=7000 --mode server -dt=30m -log=app.log -cert=serv
 
 The following command-line arguments are used when running the application in shell mode (`-s shell`):
 
-| Prefix | Key | Default Value | Description |
-| :--- | :--- | :--- | :--- |
-| `-ip`, `-h`, `--host` | `ip` | `127.0.0.1` | IP address of the server to connect to. |
-| `-p`, `--port` | `port` | `9999` | TCP port of the server to connect to. |
-| `-s`, `--mode` | `mode` | `server` | Specifies the application mode (must be `shell`). |
-| `-ca`, `--ca-cert` | `caCert` | `ca.crt` | **Mandatory:** Path to the Certificate Authority (CA) file needed to validate the **server's** certificate. |
-| `-c`, `--cert` | `cert` | `server.crt` | **Optional (for mTLS):** Path to the client's TLS certificate. |
-| `-k`, `--key` | `key` | `server.key` | **Optional (for mTLS):** Path to the client's private key. |
+## 2. Client Startup Prefixes (`tclient.js`)
 
+The client provides a secure interactive shell. The prompt is dynamically generated only after a successful connection to ensure the displayed port is accurate: `user@host:port>`.
 
-```
-node index.js -h=localhost -p=7000 --mode shell -log=app.log -cert=client.crt -key=client.key -ca-cert=ca.crt  
+| Prefix | Description | Default |
+| :--- | :--- | :--- |
+| `-p`, `--port` | The port the server is listening on. | `9999` |
+| `-ip`, `-h` | The server's IP address or hostname. | `127.0.0.1` |
+| `-ca` | Path to the CA certificate for server verification. | `ca.crt` |
+| `-c` | Path to the Client certificate for authentication. | `client.crt` |
+| `-k` | Path to the Client private key. | `client.key` |
+
+**Startup Example:**
+```bash
+# node index.js --mode shell -p 8000 -h localhost -c client.crt -k client.key -ca-cert ca.crt 
+node index.js --mode shell -p 8000 -h localhost -c client.crt -k client.key -ca ca.crt
 ```
 
 
@@ -79,18 +91,18 @@ todo: add all features
 | `get` | `read` | `get <key>` | Retrieves and prints the value associated with the specified key. |
 | `del` | `deletekey` | `del <key>` | Deletes the key-value pair from the store. |
 | `has` | `hasKey` | `has <key>` | Checks if a key exists in the store (returns `true` or `false`). |
-| `init` | | `init <JSON>` or `init -f <filename>` | **REPLACES** the entire store with the provided JSON object or the contents of a local file. |
-| `update` | `load` | `update <JSON>` or `update -f <filename>` | **MERGES** the provided JSON object or file contents into the existing store. |
-| `clear` | | `clear` | Clears the entire in-memory store (same as `init {}`). |
+| `init` | | `init -cmd <JSON String>` or `init -f <filename>` | **REPLACES** the entire store with the provided JSON object or the contents of a local file. |
+| `load` | `load` | `load -f <JSON>` or `load -f <filename>` | **MERGES** the provided JSON object or file contents into the existing store. |
+| `clear` | | `clear` | Clears the entire in-memory store (same as `init {}`). Use with caution. |
 | `search` | | `search <criteria>` | Searches for the criteria in **Keys AND Values**. |
-| `searchkeys` | | `searchkeys <criteria>` | Searches for the criteria in **Keys Only**. |
-| `searchvalues` | | `searchvalues <criteria>` | Searches for the criteria in **Values Only**. |
+| `searchkey` | | `searchkey <criteria>` | Searches for the criteria in **Keys Only**. |
+| `searchvalue` | | `searchvalue <criteria>` | Searches for the criteria in **Values Only**. |
 | `dump` | | `dump` | Retrieves the entire store data and prints it to the shell console. |
 | `dump` | | `dump -f <filename>` | Instructs the **server** to save the current store to the specified filename on the server's disk. |
-| `lock` | | `lock` | Checks the status of the server's concurrency lock. |
-| `setlock` | | `setlock <true/false>` | Manually sets the concurrency lock state. |
-| `droplock` | | `droplock` | Unlocks the store and processes any waiting queued operations. |
+| `list` | | `list -n <count>` | Lists all records in the current table. Use -n to enable pagination (e.g., list -n 10). Action: Press ENTER at the pagination prompt to load the next batch. |
+| `sql` | | `sql -cmd <sql command>` | Executes raw SQL against the in-memory database. Use backticks for the query |
 | `help` | | `help` | Displays the help menu. |
+| `use` |  | `use <tablename>` | use the context of whih table/ database is being used for key-value store |
 | `exit` | `quit` | `exit` | Disconnects the shell client and quits. |
 
 
