@@ -1,13 +1,23 @@
 {
-  "name": "kvjsondb",
+  "name": "kvdb",
   "version": "1.0.0",
   "main": "index.js",
   "description": "fast, secure and private, memory leak resistant redis like key value json based data store or database that supports http, https, ws, wss, and command shell (without authentication) and is extendible with expressjs middlewares",
   "scripts": {
+    "start": "node index.js",
+    "build": "pkg .",
     "test": "mocha --reporter spec --recursive --timeout 60000"
   },
   "directories": {
     "test": "./test"
+  },
+  "pkg": {
+    "assets": [],
+    "targets": [
+      "node18-win-x64",
+      "node18-linux-x64",
+      "node18-macos-x64"
+    ]
   },
   "keywords": [],
   "author": "Ganesh B <desktopcgi@gmail.com>",
@@ -15,6 +25,7 @@
   "devDependencies": {
     "chai": "^5.1.2",
     "mocha": "^10.8.2",
+    "pkg": "^5.8.1",
     "sinon": "^19.0.2"
   },
   "dependencies": {

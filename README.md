@@ -21,7 +21,7 @@ please note: `redis-like` is an inference most of the shell commands are like re
 
 The following command-line arguments are used when running the application in server mode (`-s server`):
 
-# TLite Database Documentation
+# Server Database Documentation
 
 TLite is a lightweight, TLS-encrypted, in-memory SQLite database system designed for speed and security. It features periodic disk persistence, robust search modes, and a dynamic interactive shell.
 
@@ -41,10 +41,11 @@ The server manages the database state in memory and handles periodic synchroniza
 | `-ca` | Path to CA certificate. | `ca.crt` |
 | `-c`, `--cert` | Path to Server certificate. | `server.crt` |
 | `-k`, `--key` | Path to Server private key. | `server.key` |
+| `--mode` | `--mode db` | will start in database mode |
 
 **Example Command:**
 ```bash
-node index.js --mode db -h localhost -p 8000 -dt 5m --dump-file data.sqlite -cert server.crt -key server.key -ca-cert ca.crt
+node index.js --mode db -h localhost -p 8000 -dt 5m --dump-file data.sqlite -cert "./certs/server.crt" -key "./certs/server.key" -ca-cert "./certs/ca.crt"
 ```
 
 
@@ -63,10 +64,12 @@ The client provides a secure interactive shell. The prompt is dynamically genera
 | `-ca` | Path to the CA certificate for server verification. | `ca.crt` |
 | `-c` | Path to the Client certificate for authentication. | `client.crt` |
 | `-k` | Path to the Client private key. | `client.key` |
+| `--mode` `-s`  `--mode shell` | will start in databse shell mode | shell | 
+
 
 **Startup Example:**
 ```bash
-node index.js --mode shell -p 8000 -h localhost -c client.crt -k client.key -ca ca.crt
+node index.js --mode shell -h localhost -p 8000 -cert "./certs/client.crt" -key "./certs/client.key" -ca-cert "./certs/ca.crt"
 ```
 
 

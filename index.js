@@ -5,24 +5,55 @@ const readline = require('readline');
 const os = require('os');
 const sqlite3 = require('sqlite3').verbose();
 
-// --- ARGUMENT PARSING ---
+// --- INDEPENDENT ARGUMENT PARSER ---
 const argsList = process.argv.slice(2);
-const getArg = (flags, defaultValue) => {
+function getFlagValue(flags, defaultValue) {
     for (let i = 0; i < argsList.length; i++) {
-        if (flags.includes(argsList[i]) && argsList[i + 1]) return argsList[i + 1];
+        if (flags.includes(argsList[i]) && argsList[i + 1]) {
+            return argsList[i + 1];
+        }
     }
     return defaultValue;
+}
+
+// 1. Resolve Mode first
+const MODE = getFlagValue(['-s', '--mode'], 'shell').toLowerCase(); 
+
+// 2. Resolve Paths based on Mode Defaults
+const defaultCert = (MODE === 'db') ? 'server.crt' : 'client.crt';
+const defaultKey = (MODE === 'db') ? 'server.key' : 'client.key';
+
+// 3. Apply overrides from command line (Verbose Options Added)
+const CA_FILE   = getFlagValue(['-ca', '--ca-cert'], 'ca.crt');
+const CERT_FILE = getFlagValue(['-c', '--cert'], defaultCert);
+const KEY_FILE  = getFlagValue(['-k', '--key', '--keys'], defaultKey);
+
+const PORT = parseInt(getFlagValue(['-p', '--port'], '9999'), 10);
+const HOST = getFlagValue(['-ip', '-h', '--host'], MODE === 'db' ? '0.0.0.0' : 'localhost');
+
+// --- PRE-FLIGHT SECURITY CHECK ---
+const checkPath = (label, p) => {
+    const absolutePath = path.resolve(process.cwd(), p);
+    if (!fs.existsSync(absolutePath)) {
+        console.error(`\x1b[31m[ERROR]\x1b[0m ${label} not found at: ${absolutePath}`);
+        return false;
+    }
+    return true;
 };
 
-const MODE = getArg(['-s', '--mode'], 'db').toLowerCase();
-const PORT = parseInt(getArg(['-p', '--port'], '9999'), 10);
-const HOST = getArg(['-ip', '-h', '--host'], MODE === 'db' ? '0.0.0.0' : 'localhost');
-const CA_FILE = getArg(['-ca'], 'ca.crt');
-const CERT_FILE = getArg(['-c'], MODE === 'db' ? 'server.crt' : 'client.crt');
-const KEY_FILE = getArg(['-k'], MODE === 'db' ? 'server.key' : 'client.key');
+const ok = checkPath("CA Cert", CA_FILE) && checkPath("Cert", CERT_FILE) && checkPath("Key", KEY_FILE);
+
+if (!ok) {
+    console.error("\n\x1b[33mUsage Tip:\x1b[0m node tlite.js --cert ./path/to/cert.crt --key ./path/to/key.key");
+    process.exit(1);
+}
 
 // --- SERVER (DB) MODE ---
 if (MODE === 'db') {
+    console.log(`[*] Starting DB Server...`);
+    console.log(`[*] Cert: ${path.resolve(CERT_FILE)}`);
+    console.log(`[*] Key:  ${path.resolve(KEY_FILE)}`);
+
     function parseDuration(str) {
         const regex = /(-?\d+)([hms])/g;
         let totalSeconds = 0, match, found = false;
@@ -37,8 +68,8 @@ if (MODE === 'db') {
         return found ? totalSeconds : (parseInt(str, 10) || 60);
     }
 
-    const DB_PATH = getArg(['--dump-file'], null) || getArg(['-l', '--load'], path.join(__dirname, 'data.sqlite'));
-    const DT_RAW = getArg(['-dt'], '60s');
+    const DB_PATH = getFlagValue(['--dump-file'], null) || getFlagValue(['-l', '--load'], path.join(__dirname, 'data.sqlite'));
+    const DT_RAW = getFlagValue(['-dt'], '60s');
 
     let globalLock = false;
     const commandQueue = [];
@@ -124,6 +155,7 @@ if (MODE === 'db') {
                 });
                 break;
             case 'clear': memDb.run(`DELETE FROM ${currentTable}`, (err) => finalize(err, "Cleared")); break;
+            case 'tables': memDb.all("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'", (err, rows) => finalize(err, rows)); break;
             case 'use':
                 const target = (args.k || 'store').replace(/[^a-z0-9_]/gi, '');
                 memDb.run(`CREATE TABLE IF NOT EXISTS ${target} (key TEXT PRIMARY KEY, value TEXT)`, (err) => {
@@ -180,7 +212,6 @@ if (MODE === 'db') {
         globalLock = false; processQueue();
     }
 
-    // --- GRACEFUL SHUTDOWN LOGIC ---
     const handleShutdown = (type) => {
         console.log(`\n[SHUTDOWN] Signal: ${type}. Performing emergency dump...`);
         persistToDisk(DB_PATH, null, 'shutdown-sync', (err) => {
@@ -188,14 +219,13 @@ if (MODE === 'db') {
             else console.log("[SUCCESS] Final memory state persisted to disk.");
             process.exit(err ? 1 : 0);
         });
-        // Force exit if SQLite hangs
         setTimeout(() => process.exit(1), 5000);
     };
 
     process.on('SIGINT', () => handleShutdown('SIGINT'));
     process.on('SIGTERM', () => handleShutdown('SIGTERM'));
     process.on('uncaughtException', (err) => {
-        console.error("[CRASH] Uncaught Exception:", err.message);
+        console.error("[CRASH] Uncaught Exception:", err.stack || err.message);
         handleShutdown('CRASH');
     });
 
@@ -203,6 +233,10 @@ if (MODE === 'db') {
 
 } else if (MODE === 'shell') {
     // --- SHELL (CLIENT) MODE ---
+    console.log(`[*] Connecting as Shell...`);
+    console.log(`[*] Cert: ${path.resolve(CERT_FILE)}`);
+    console.log(`[*] Key:  ${path.resolve(KEY_FILE)}`);
+
     let cursorActive = false, pendingCommand = null;
     const client = tls.connect(PORT, HOST, {
         key: fs.readFileSync(KEY_FILE), cert: fs.readFileSync(CERT_FILE), ca: fs.readFileSync(CA_FILE),
@@ -219,7 +253,7 @@ if (MODE === 'db') {
     };
 
     client.on('connect', () => { 
-        console.log(JSON.stringify({ event: "connected", host: HOST, port: PORT })); 
+        console.log(JSON.stringify({ event: "connected", mode: "shell", host: HOST, port: PORT })); 
         rl.setPrompt(getPrompt()); rl.prompt(); 
     });
 
@@ -230,7 +264,7 @@ if (MODE === 'db') {
                 const res = JSON.parse(line);
                 console.log(JSON.stringify(res, null, 2));
                 cursorActive = res.pagination ? res.pagination.hasMore : false;
-            } catch (e) { console.log("Raw Server Output:", line); }
+            } catch (e) { console.log("Raw Response:", line); }
         });
         rl.setPrompt(getPrompt()); rl.prompt();
     });
