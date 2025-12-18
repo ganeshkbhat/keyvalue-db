@@ -1,5 +1,5 @@
 # keyvalue-db
-*`fast`, `secure`, `private`, and `memory leak resistant` `in-memory` `key-value` `(closure encapsulated)` `js-sqlite based` `datastore or database` that supports `tcp mtls (tls)`, and a `command shell (without or with [todo] authentication)`*
+*`fast`, `secure`, `private`, and `memory leak resistant` `in-memory` `key-value` `js-sqlite based` `datastore or database` that supports `tcp mtls (tls)`, and a `command shell (without or with [todo] authentication)`*
 
 
 ##### indevelopment - do not use in production

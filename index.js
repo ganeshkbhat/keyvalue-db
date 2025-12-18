@@ -14,12 +14,12 @@ const getArg = (flags, defaultValue) => {
     return defaultValue;
 };
 
-const MODE = getArg(['-s', '--mode'], 'db').toLowerCase(); // 'db' or 'shell'
+const MODE = getArg(['-s', '--mode'], 'db').toLowerCase();
 const PORT = parseInt(getArg(['-p', '--port'], '9999'), 10);
 const HOST = getArg(['-ip', '-h', '--host'], MODE === 'db' ? '0.0.0.0' : 'localhost');
 const CA_FILE = getArg(['-ca'], 'ca.crt');
-const CERT_FILE = getArg(['-c'], 'server.crt'); // Uses client.crt in shell mode below
-const KEY_FILE = getArg(['-k'], 'server.key');   // Uses client.key in shell mode below
+const CERT_FILE = getArg(['-c'], MODE === 'db' ? 'server.crt' : 'client.crt');
+const KEY_FILE = getArg(['-k'], MODE === 'db' ? 'server.key' : 'client.key');
 
 // --- SERVER (DB) MODE ---
 if (MODE === 'db') {
@@ -59,7 +59,7 @@ if (MODE === 'db') {
                 if (!err) {
                     memDb.run(`INSERT OR IGNORE INTO main.${currentTable} SELECT * FROM disk.${currentTable}`, () => {
                         memDb.run(`DETACH DATABASE disk`, () => {
-                            console.log(`[*] Data loaded. Disk file UNLOCKED.`);
+                            console.log(`[*] Initial data synced. Disk file UNLOCKED.`);
                         });
                     });
                 }
@@ -67,10 +67,11 @@ if (MODE === 'db') {
         }
     });
 
-    const persistToDisk = (targetPath = DB_PATH, socket = null, cmd = 'auto-sync') => {
+    const persistToDisk = (targetPath = DB_PATH, socket = null, cmd = 'auto-sync', callback = null) => {
         if (fs.existsSync(targetPath)) { try { fs.unlinkSync(targetPath); } catch(e) {} }
         memDb.run(`VACUUM INTO '${targetPath}'`, (err) => {
-            if (socket) sendJson(socket, { status: err ? "error" : "success", command: cmd, message: err ? err.message : `Persisted.` });
+            if (socket) sendJson(socket, { status: err ? "error" : "success", command: cmd, message: err ? err.message : `Persisted to ${path.basename(targetPath)}` });
+            if (callback) callback(err);
         });
     };
 
@@ -163,7 +164,7 @@ if (MODE === 'db') {
                     finalize(err, rows);
                 });
                 break;
-            case 'dump': persistToDisk(DB_PATH, socket, 'dump'); finalize(null, "Syncing..."); break;
+            case 'dump': persistToDisk(DB_PATH, socket, 'dump'); finalize(null, "Manual sync triggered"); break;
             case 'sql': memDb.all(args.sql, [], finalize); break;
             default: globalLock = false; finalize(new Error("Unknown"));
         }
@@ -179,25 +180,46 @@ if (MODE === 'db') {
         globalLock = false; processQueue();
     }
 
-    process.on('SIGINT', () => { persistToDisk(); setTimeout(() => process.exit(0), 1000); });
-    server.listen(PORT, HOST, () => console.log(`[DB MODE] Listening on ${HOST}:${PORT}`));
+    // --- GRACEFUL SHUTDOWN LOGIC ---
+    const handleShutdown = (type) => {
+        console.log(`\n[SHUTDOWN] Signal: ${type}. Performing emergency dump...`);
+        persistToDisk(DB_PATH, null, 'shutdown-sync', (err) => {
+            if (err) console.error("[CRITICAL] Final dump failed:", err.message);
+            else console.log("[SUCCESS] Final memory state persisted to disk.");
+            process.exit(err ? 1 : 0);
+        });
+        // Force exit if SQLite hangs
+        setTimeout(() => process.exit(1), 5000);
+    };
+
+    process.on('SIGINT', () => handleShutdown('SIGINT'));
+    process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+    process.on('uncaughtException', (err) => {
+        console.error("[CRASH] Uncaught Exception:", err.message);
+        handleShutdown('CRASH');
+    });
+
+    server.listen(PORT, HOST, () => console.log(`[DB MODE] Active on ${HOST}:${PORT}`));
 
 } else if (MODE === 'shell') {
     // --- SHELL (CLIENT) MODE ---
-    const clientCert = getArg(['-c'], 'client.crt');
-    const clientKey = getArg(['-k'], 'client.key');
-
     let cursorActive = false, pendingCommand = null;
     const client = tls.connect(PORT, HOST, {
-        key: fs.readFileSync(clientKey), cert: fs.readFileSync(clientCert), ca: fs.readFileSync(CA_FILE),
+        key: fs.readFileSync(KEY_FILE), cert: fs.readFileSync(CERT_FILE), ca: fs.readFileSync(CA_FILE),
         rejectUnauthorized: true
     });
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const getPrompt = () => `${os.userInfo().username}@${HOST}:${PORT}> `;
 
+    const closeShell = () => {
+        rl.close();
+        client.destroy();
+        process.exit(0);
+    };
+
     client.on('connect', () => { 
-        console.log(JSON.stringify({ event: "connected", host: HOST })); 
+        console.log(JSON.stringify({ event: "connected", host: HOST, port: PORT })); 
         rl.setPrompt(getPrompt()); rl.prompt(); 
     });
 
@@ -208,33 +230,34 @@ if (MODE === 'db') {
                 const res = JSON.parse(line);
                 console.log(JSON.stringify(res, null, 2));
                 cursorActive = res.pagination ? res.pagination.hasMore : false;
-            } catch (e) { console.log("Raw:", line); }
+            } catch (e) { console.log("Raw Server Output:", line); }
         });
         rl.setPrompt(getPrompt()); rl.prompt();
     });
 
     rl.on('line', (line) => {
-        const input = line.trim();
+        const input = line.trim().toLowerCase();
+        if (input === 'exit' || input === 'quit') return closeShell();
+
         if (pendingCommand) {
-            if (input.toLowerCase() === 'y' || input.toLowerCase() === 'yes') client.write(pendingCommand);
+            if (input === 'y' || input === 'yes') client.write(pendingCommand);
+            else console.log("Aborted.");
             pendingCommand = null; rl.setPrompt(getPrompt()); rl.prompt(); return;
         }
+
         if (!input && cursorActive) return client.write(JSON.stringify({ cmd: "next" }));
         if (!input) return rl.prompt();
-        if (input === 'exit' || input === 'quit') return client.end();
 
-        const parts = input.split(/\s+/);
+        const parts = line.trim().split(/\s+/);
         const cmd = parts[0].toLowerCase();
-        const findInShell = (flag) => {
-            const idx = parts.indexOf(flag);
-            return idx !== -1 ? parts[idx + 1] : null;
-        };
-        const cmdData = findInShell('-cmd') || (input.match(/-cmd\s+`([^`]+)`/) || [])[1];
+        const findInShell = (f) => { const idx = parts.indexOf(f); return idx !== -1 ? parts[idx + 1] : null; };
+        const cmdData = (line.match(/-cmd\s+`([^`]+)`/) || [])[1];
 
         const payload = JSON.stringify({
             cmd, args: {
                 k: parts[1], v: parts[2], q: parts[1], f: findInShell('-f'),
-                n: findInShell('-n'), sql: cmd === 'sql' ? cmdData : null, data: cmd === 'init' ? cmdData : null
+                n: findInShell('-n'), sql: cmd === 'sql' ? cmdData : null, 
+                data: cmd === 'init' ? cmdData : null
             }
         });
 
@@ -244,5 +267,6 @@ if (MODE === 'db') {
         } else client.write(payload);
     });
 
-    client.on('error', (err) => { console.error("Error:", err.message); process.exit(1); });
+    rl.on('SIGINT', () => closeShell());
+    client.on('error', (err) => { console.error("Connection Error:", err.message); process.exit(1); });
 }
