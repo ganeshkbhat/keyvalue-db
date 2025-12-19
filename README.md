@@ -72,7 +72,7 @@ The client provides a secure interactive shell. The prompt is dynamically genera
 node index.js --mode shell -h localhost -p 8000 --cert "./certs/client.crt" --key "./certs/client.key" --ca-cert "./certs/ca.crt"
 ```
 
-<iframe width="560" height="315" src="https://youtu.be/_c99SPW4DBo" frameborder="0" allowfullscreen></iframe>
+[![Alt text for the image](https://img.youtube.com/vi/_c99SPW4DBo/0.jpg)](www.youtube.com)
 
 
 
