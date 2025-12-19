@@ -74,8 +74,6 @@ node index.js --mode shell -h localhost -p 8000 --cert "./certs/client.crt" --ke
 
 [![Watch the comprehensive video](https://youtu.be/_c99SPW4DBo?si=lXmtiYF8k8uMarRM)](https://www.youtube.com/watch?v=_c99SPW4DBo)
 
-![https://www.youtube.com/watch?v=_c99SPW4DBo](https://www.youtube.com/watch?v=_c99SPW4DBo)
-
 ### Architecture of kvjsondb - Basic Storage
 ![DB Basic Storage](https://github.com/ganeshkbhat/keyvalue-jsondb/blob/main/docs/db-basic-storage.jpg)
 
