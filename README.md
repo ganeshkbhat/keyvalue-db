@@ -17,6 +17,14 @@ please note: `redis-like` is an inference most of the shell commands are like re
 - ✒️ any programming language that supports `tcp tls`, `tcp mtls` requests can be used as a client *[todo add request structure and parameters to docs]*
 
 
+-----------------------------------------------
+
+
+[Watch the comprehensive video](https://youtu.be/_c99SPW4DBo?si=lXmtiYF8k8uMarRM)
+
+
+-----------------------------------------------
+
 ### 🖥️ Server Mode Prefixes
 
 The following command-line arguments are used when running the application in server mode (`-s server`):
@@ -73,12 +81,6 @@ The client provides a secure interactive shell. The prompt is dynamically genera
 ```bash
 node index.js --mode shell -h localhost -p 8000 --cert "./certs/client.crt" --key "./certs/client.key" --ca-cert "./certs/ca.crt"
 ```
-
------------------------------------------------
-
-
-[![Watch the comprehensive video](https://youtu.be/_c99SPW4DBo?si=lXmtiYF8k8uMarRM)](https://www.youtube.com/watch?v=_c99SPW4DBo)
-
 
 -----------------------------------------------
 
