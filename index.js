@@ -50,12 +50,13 @@ if (!ok) {
 
 // --- SERVER (DB) MODE ---
 if (MODE === 'db') {
-    const DB_PATH = getFlagValue(['--dump-file'], null) || getFlagValue(['-l', '--load'], path.join(__dirname, 'data.sqlite'));
+    // Resolved Database Path with -df alias
+    const DB_PATH = getFlagValue(['-df', '--dump-file'], null) || getFlagValue(['-l', '--load'], path.join(__dirname, 'data.sqlite'));
     const LOG_PREFIX = getFlagValue(['-lp', '--log-prefix'], DB_PATH);
     const LOG_PATH = LOG_PREFIX + ".log";
     const DT_RAW = getFlagValue(['-dt'], '60s');
 
-    // Enhanced Logging Utility
+    // Enhanced Logging Utility: [Timestamp] [IP:PORT] [Category] [Command] [Status] "Details"
     const logger = (socket, event, cmd, status, message) => {
         const timestamp = new Date().toISOString();
         const ip = socket ? socket.remoteAddress : "127.0.0.1";
@@ -96,6 +97,7 @@ if (MODE === 'db') {
         executeCommand(task.cmd, task.args, task.socket);
     }
 
+    // Initialize SQLite in-memory
     const memDb = new sqlite3.Database(':memory:');
     let currentTable = 'store';
 
@@ -269,7 +271,7 @@ if (MODE === 'db') {
     });
 
     server.listen(PORT, HOST, () => {
-        logger(null, "SYSTEM", "STARTUP", "SUCCESS", `Active on ${HOST}:${PORT}`);
+        logger(null, "SYSTEM", "STARTUP", "SUCCESS", `Active on ${HOST}:${PORT}. DB: ${path.resolve(DB_PATH)}`);
     });
 
 } else if (MODE === 'shell') {
