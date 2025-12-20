@@ -87,7 +87,7 @@ node index.js --mode shell -h localhost -p 8000 --cert "./certs/client.crt" --ke
 -----------------------------------------------
 
 
-### Architecture of kvjsondb - Basic Storage
+### Architecture of kvdb - Basic Storage
 ![DB Basic Storage](https://github.com/ganeshkbhat/keyvalue-jsondb/blob/main/docs/db-basic-storage.jpg)
 
 
