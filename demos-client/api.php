@@ -10,7 +10,7 @@ $certs = [
 ];
 
 try {
-    $db = create_tlite_client('localhost', 8000, $certs);
+    $db = create_tlite_client('localhost', 9999, $certs);
     echo "🚀 Connected to TLite Server. Starting full test suite...\n\n";
 
     // 1. Context: Switch to a table (creates it if not present)

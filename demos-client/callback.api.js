@@ -16,7 +16,7 @@ var createTLiteClient = require("../clients/api.js").ClientAPI
 // --- CONFIGURATION ---
 var config = {
     host: 'localhost',
-    port: 8000,
+    port: 9999,
     ca: './certs/ca.crt',
     cert: './certs/client.crt',
     key: './certs/client.key'

@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # Config - Ensure these files exist in your path
     CONFIG = {
         "host": "localhost",
-        "port": 8000,
+        "port": 9999,
         "ca": "./certs/ca.crt",
         "cert": "./certs/client.crt",
         "key": "./certs/client.key"

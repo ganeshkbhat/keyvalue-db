@@ -5,7 +5,7 @@ var ClientPromiseAPI = require("../clients/api.js").ClientPromiseAPI;
 // --- CONFIGURATION ---
 var config = {
     host: 'localhost',
-    port: 8000,
+    port: 9999,
     ca: './certs/ca.crt',
     cert: './certs/client.crt',
     key: './certs/client.key'
