@@ -2,7 +2,7 @@
 *`fast`, `secure`, `private`, and `memory leak resistant` `in-memory` `key-value` `js-sqlite based` `datastore or database` that supports `tcp mtls (tls)`, and a `command shell (without or with [todo] authentication)`*
 
 
-##### indevelopment - do not use in production
+##### indevelopment - use in production with caution
 
 
 please note: `redis-like` is an inference most of the shell commands are like redis but a few changes have been made to accomodate the architecture. 
@@ -11,9 +11,11 @@ please note: `redis-like` is an inference most of the shell commands are like re
 #### FEATURES
 
 
-- ✓ runs in ✓`tcp tls`, or ✒️`tcp mtls`, or `ws`, or `wss` (in development for tests)
+- ✓ runs in ✓`tcp tls`, or ✓`tcp mtls`, or ✒️`ws`, or ✒️`wss` (in development for tests)
 - ✓ runs a `database or shell` mode with ✓`redis-like` commands (in development)
-- ✒️ has a nodejs client api.  
+- ✓ has a nodejs client api.  
+- ✓ has a python client api.  
+- ✒️ has a php client api.  
 - ✒️ any programming language that supports `tcp tls`, `tcp mtls` requests can be used as a client *[todo add request structure and parameters to docs]*
 
 
