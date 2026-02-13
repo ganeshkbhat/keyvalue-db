@@ -35,7 +35,7 @@ please note:
 
 ### 🖥️ Server Mode Prefixes
 
-The following command-line arguments are used when running the application in server mode (`-s server`):
+The following command-line arguments are used when running the application in server mode (`-s db`):
 
 TLite is a lightweight, TLS-encrypted, in-memory SQLite database system designed for speed and security. It features periodic disk persistence, robust search modes, and a dynamic interactive shell.
 
@@ -98,7 +98,7 @@ node index.js --mode shell -h localhost -p 8000 --cert "./certs/client.crt" --ke
 -----------------------------------------------
 
 
-How Synchronization (Dumping) Happens
+##### How Synchronization (Dumping) Happens
 
 The script implements exactly the three triggers you requested:
 
