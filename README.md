@@ -250,6 +250,79 @@ The script implements exactly the three triggers you requested:
 -----------------------------
 
 
+1. Authentication Commands
+
+These commands are used to verify a user's identity and manage active sessions.
+
+\> `register <username>`
+
+Purpose: Creates a new user account with a secure, hashed password.
+
+Usage: Type register followed by the username. The client shell will then securely prompt you to type your email and password interactively.
+
+\> `login <username>`
+
+Purpose: Authenticates a user and binds a secure session token to the current terminal connection.
+
+Usage: Type login followed by your username. The shell will prompt you interactively for your password.
+
+\> `logout`
+
+Purpose: Destroys the active session token and clears authentication state from the socket.
+
+Usage: Type logout directly into the shell.
+
+-----------------------------
+
+2. Authorization & ACL Commands
+
+These commands manage what an authenticated user or group is allowed to do. They require explicit flags to pass validation.
+
+\> `grant user -pt <user|group> -pr <name> -r <key|*> -perm <privileges>`
+
+Purpose: Grants specific CRUD permissions to a target user or group.
+
+Flags:
+
+-pt (Principal Type): Must be user or group.
+
+-pr (Principal Name): The specific username or group name.
+
+-r (Resource): Use a specific key name (e.g., gb) or use * as a wildcard to grant access to the entire table.
+
+-perm (Permissions): A comma-separated list of capabilities: read, create, update, delete.
+
+\> `revoke user -pt <user|group> -pr <name> -r <key|*>`
+
+Purpose: Completely removes an access control policy matching a specific principal and resource combination.
+
+\> `acl`
+
+Purpose: Views the active access control policies for debugging or verification.
+
+Optional Flags: You can filter the policy lists by appending -principal <name>, -principal_type <user|group>, or -resource <key>.
+
+-----------------------------
+
+3. Group Administration Commands
+
+Because users inherit permissions from any group they belong to, you can manage group memberships using these commands:
+
+\> `groupadd <group_name> <description>`
+
+Purpose: Registers a new group role/bucket inside the system.
+
+\> `groupassign <username> <group_name>`
+
+Purpose: Adds a user to a group so they inherit that group's permissions.
+
+\> `groupremove <username> <group_name>`
+
+Purpose: Strips a user of a group assignment, removing their inherited permissions.
+
+\> `listgroups`
+
+Purpose: Displays all created groups, their descriptions, and status entries.
 
 
 #### TODO
