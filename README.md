@@ -133,7 +133,7 @@ The script implements exactly the three triggers you requested:
 | `drop` |  | `drop <tablename>` | drop the context of which table/ database is being mentioned. tables are given a context of key-value database. Deletes an entire custom table schema along with all contained transactional keys. |
 | `register` |  | `register <username> <password> -f <email> [-db <resource_table>] [-resource <resource_key>] [-permissions <perm_string>]` | Registers a new user. You can also pass advanced optional flag parameters to provision structural object scopes immediately upon registration |
 | `login` |  | `login <username> <password>` | Logs in a new user into the shell. |
-| `passwd` |  | `passwd newpassword` | Changes the logged in user password. |
+| `passwd` |  | `passwd newpassword` | Changes the logged in user password when running in the same login user context. |
 | `logout` |  | `logout` | Logs out the logged in user in the shell. |
 | `exit` | `quit` | `exit` | Disconnects the shell client and quits. |
 | `help` | | `help` | Displays the help menu. |
