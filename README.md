@@ -129,8 +129,12 @@ The script implements exactly the three triggers you requested:
 | `dump` | | `dump -f <filename>` | Instructs the **server** to save the current store to the specified filename on the server's disk. |
 | `list` | | `list -n <count>` | Lists all records in the current table. Use -n to enable pagination (e.g., list -n 10). Action: Press ENTER at the pagination prompt to load the next batch. |
 | `sql` | | `sql -cmd <sql command>` | Executes raw SQL against the in-memory database. Use backticks for the query |
-| `use` |  | `use <tablename>` | use the context of which table/ database is being used for key-value store |
-| `drop` |  | `drop <tablename>` | drop the context of which table/ database is being mentioned. tables are given a context of key-value database |
+| `use` |  | `use <tablename>` | use the context of which table/ database is being used for key-value store. Switches the active operational table destination context. If the requested target table doesn't exist, it will be automatically provisioned inside the volatile store and mirrored to disk |
+| `drop` |  | `drop <tablename>` | drop the context of which table/ database is being mentioned. tables are given a context of key-value database. Deletes an entire custom table schema along with all contained transactional keys. |
+| `register` |  | `register <username> <password> -f <email> [-db <resource_table>] [-resource <resource_key>] [-permissions <perm_string>]` | Registers a new user. You can also pass advanced optional flag parameters to provision structural object scopes immediately upon registration |
+| `login` |  | `login <username> <password>` | Logs in a new user into the shell. |
+| `passwd` |  | `passwd newpassword` | Changes the logged in user password. |
+| `logout` |  | `logout` | Logs out the logged in user in the shell. |
 | `exit` | `quit` | `exit` | Disconnects the shell client and quits. |
 | `help` | | `help` | Displays the help menu. |
 

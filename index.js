@@ -6,7 +6,7 @@ const os = require('os');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const { DatabaseSync } = require('node:sqlite');
+const sqlite3 = require('sqlite3').verbose();
 
 // --- INDEPENDENT ARGUMENT PARSER ---
 const argsList = process.argv.slice(2);
@@ -92,106 +92,121 @@ if (MODE === 'db') {
         executeCommand(task.cmd, task.args, task.socket);
     }
 
-    const memDb = new DatabaseSync(':memory:');
+    const memDb = new sqlite3.Database(':memory:');
     let currentDatabase = 'store';
 
-    function initializeDatabaseSchemas(dbInstance) {
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY, value TEXT)`);
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active')`);
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, description TEXT, status TEXT DEFAULT 'active', created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS user_groups (user_id INTEGER NOT NULL, group_id INTEGER NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(user_id, group_id))`);
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS access_controls (id INTEGER PRIMARY KEY AUTOINCREMENT, resource_table TEXT NOT NULL, resource_key TEXT NOT NULL, principal_type TEXT NOT NULL CHECK(principal_type IN ('user','group')), principal_id INTEGER NOT NULL, principal_name TEXT NOT NULL, can_read INTEGER DEFAULT 0, can_create INTEGER DEFAULT 0, can_update INTEGER DEFAULT 0, can_delete INTEGER DEFAULT 0, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
-        dbInstance.exec(`CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, username TEXT NOT NULL, email TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT NOT NULL DEFAULT 'active')`);
+    const dbRun = (db, sql, params = []) => new Promise((resolve, reject) => {
+        db.run(sql, params, function(err) { if (err) reject(err); else resolve(this); });
+    });
+    const dbGet = (db, sql, params = []) => new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => { if (err) reject(err); else resolve(row); });
+    });
+    const dbAll = (db, sql, params = []) => new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => { if (err) reject(err); else resolve(rows); });
+    });
+    const dbExec = (db, sql) => new Promise((resolve, reject) => {
+        db.exec(sql, (err) => { if (err) reject(err); else resolve(); });
+    });
+
+    async function initializeDatabaseSchemas(dbInstance) {
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY, value TEXT)`);
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active')`);
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, description TEXT, status TEXT DEFAULT 'active', created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS user_groups (user_id INTEGER NOT NULL, group_id INTEGER NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(user_id, group_id))`);
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS access_controls (id INTEGER PRIMARY KEY AUTOINCREMENT, resource_table TEXT NOT NULL, resource_key TEXT NOT NULL, principal_type TEXT NOT NULL CHECK(principal_type IN ('user','group')), principal_id INTEGER NOT NULL, principal_name TEXT NOT NULL, can_read INTEGER DEFAULT 0, can_create INTEGER DEFAULT 0, can_update INTEGER DEFAULT 0, can_delete INTEGER DEFAULT 0, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+        await dbExec(dbInstance, `CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, username TEXT NOT NULL, email TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT NOT NULL DEFAULT 'active')`);
         
-        const adminCheck = dbInstance.prepare("SELECT 1 FROM users WHERE username = 'admin'").get();
+        const adminCheck = await dbGet(dbInstance, "SELECT 1 FROM users WHERE username = 'admin'");
         if (!adminCheck) {
             const hashedAdminPassword = bcrypt.hashSync('admin', 10);
-            dbInstance.prepare("INSERT INTO users (username, email, password) VALUES ('admin', 'admin@admin.com', ?)").run(hashedAdminPassword);
+            await dbRun(dbInstance, "INSERT INTO users (username, email, password) VALUES ('admin', 'admin@admin.com', ?)", [hashedAdminPassword]);
         }
     }
 
-    try {
-        initializeDatabaseSchemas(memDb);
-        
-        if (!fs.existsSync(DB_PATH)) {
-            try {
-                const diskInitDb = new DatabaseSync(DB_PATH);
-                initializeDatabaseSchemas(diskInitDb);
-                diskInitDb.close();
-                logger(null, "SYSTEM", "BOOT_INIT", "SUCCESS", `Created new empty database file at ${path.basename(DB_PATH)}`);
-            } catch (e) {
-                logger(null, "SYSTEM", "BOOT_INIT", "ERROR", `Could not create empty database file: ${e.message}`);
+    async function bootstrapDatabase() {
+        try {
+            await initializeDatabaseSchemas(memDb);
+            
+            if (!fs.existsSync(DB_PATH)) {
+                try {
+                    const diskInitDb = new sqlite3.Database(DB_PATH);
+                    await initializeDatabaseSchemas(diskInitDb);
+                    await new Promise((res) => diskInitDb.close(() => res()));
+                    logger(null, "SYSTEM", "BOOT_INIT", "SUCCESS", `Created new empty database file at ${path.basename(DB_PATH)}`);
+                } catch (e) {
+                    logger(null, "SYSTEM", "BOOT_INIT", "ERROR", `Could not create empty database file: ${e.message}`);
+                }
             }
-        }
 
-        if (fs.existsSync(DB_PATH)) {
-            try {
-                memDb.exec(`ATTACH DATABASE '${DB_PATH}' AS disk`);
-                
-                // Ensure structural system schemas are established on the attached disk if missing
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.store (key TEXT PRIMARY KEY, value TEXT)`);
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active')`);
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, description TEXT, status TEXT DEFAULT 'active', created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.user_groups (user_id INTEGER NOT NULL, group_id INTEGER NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(user_id, group_id))`);
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.access_controls (id INTEGER PRIMARY KEY AUTOINCREMENT, resource_table TEXT NOT NULL, resource_key TEXT NOT NULL, principal_type TEXT NOT NULL CHECK(principal_type IN ('user','group')), principal_id INTEGER NOT NULL, principal_name TEXT NOT NULL, can_read INTEGER DEFAULT 0, can_create INTEGER DEFAULT 0, can_update INTEGER DEFAULT 0, can_delete INTEGER DEFAULT 0, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
-                memDb.exec(`CREATE TABLE IF NOT EXISTS disk.sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, username TEXT NOT NULL, email TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT NOT NULL DEFAULT 'active')`);
+            if (fs.existsSync(DB_PATH)) {
+                try {
+                    await dbExec(memDb, `ATTACH DATABASE '${DB_PATH}' AS disk`);
+                    
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.store (key TEXT PRIMARY KEY, value TEXT)`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'active')`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, description TEXT, status TEXT DEFAULT 'active', created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.user_groups (user_id INTEGER NOT NULL, group_id INTEGER NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(user_id, group_id))`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.access_controls (id INTEGER PRIMARY KEY AUTOINCREMENT, resource_table TEXT NOT NULL, resource_key TEXT NOT NULL, principal_type TEXT NOT NULL CHECK(principal_type IN ('user','group')), principal_id INTEGER NOT NULL, principal_name TEXT NOT NULL, can_read INTEGER DEFAULT 0, can_create INTEGER DEFAULT 0, can_update INTEGER DEFAULT 0, can_delete INTEGER DEFAULT 0, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS disk.sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, username TEXT NOT NULL, email TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, status TEXT NOT NULL DEFAULT 'active')`);
 
-                const tables = memDb.prepare("SELECT name FROM disk.sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
-                tables.forEach(t => {
-                    if (t.name === 'users' || t.name === 'groups' || t.name === 'user_groups' || t.name === 'access_controls' || t.name === 'sessions') {
-                        memDb.exec(`CREATE TABLE IF NOT EXISTS main.${t.name} (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, name TEXT UNIQUE, description TEXT, status TEXT, created TEXT, user_id INTEGER, group_id INTEGER, resource_table TEXT, resource_key TEXT, principal_type TEXT, principal_id INTEGER, principal_name TEXT, can_read INTEGER, can_create INTEGER, can_update INTEGER, can_delete INTEGER, token TEXT)`);
-                    } else {
-                        memDb.exec(`CREATE TABLE IF NOT EXISTS main.${t.name} (key TEXT PRIMARY KEY, value TEXT)`);
+                    const tables = await dbAll(memDb, "SELECT name FROM disk.sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                    for (const t of tables) {
+                        if (['users', 'groups', 'user_groups', 'access_controls', 'sessions'].includes(t.name)) {
+                            await dbExec(memDb, `CREATE TABLE IF NOT EXISTS main.${t.name} (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, email TEXT UNIQUE, password TEXT, name TEXT UNIQUE, description TEXT, status TEXT, created TEXT, user_id INTEGER, group_id INTEGER, resource_table TEXT, resource_key TEXT, principal_type TEXT, principal_id INTEGER, principal_name TEXT, can_read INTEGER, can_create INTEGER, can_update INTEGER, can_delete INTEGER, token TEXT)`);
+                        } else {
+                            await dbExec(memDb, `CREATE TABLE IF NOT EXISTS main.${t.name} (key TEXT PRIMARY KEY, value TEXT)`);
+                        }
+                        await dbExec(memDb, `INSERT OR IGNORE INTO main.${t.name} SELECT * FROM disk.${t.name}`);
                     }
-                    memDb.exec(`INSERT OR IGNORE INTO main.${t.name} SELECT * FROM disk.${t.name}`);
-                });
-                memDb.exec(`DETACH DATABASE disk`);
-                logger(null, "SYSTEM", "BOOT_SYNC", "SUCCESS", `Loaded ${path.basename(DB_PATH)}`);
-            } catch (e) {
-                logger(null, "SYSTEM", "BOOT_SYNC", "ERROR", e.message);
+                    await dbExec(memDb, `DETACH DATABASE disk`);
+                    logger(null, "SYSTEM", "BOOT_SYNC", "SUCCESS", `Loaded ${path.basename(DB_PATH)}`);
+                } catch (e) {
+                    logger(null, "SYSTEM", "BOOT_SYNC", "ERROR", e.message);
+                }
             }
+        } catch (e) {
+            logger(null, "SYSTEM", "BOOT_SYNC", "ERROR", e.message);
         }
-    } catch (e) {
-        logger(null, "SYSTEM", "BOOT_SYNC", "ERROR", e.message);
     }
 
-    function getSession(args, socket) {
+    bootstrapDatabase();
+
+    async function getSession(args, socket) {
         const token = (args && args.session) || (socket && socket.auth && socket.auth.session);
         if (!token) return null;
         
-        const row = memDb.prepare(`SELECT user_id AS userId, username, email, token AS session FROM sessions WHERE token = ? AND status = 'active'`).get(token);
+        const row = await dbGet(memDb, `SELECT user_id AS userId, username, email, token AS session FROM sessions WHERE token = ? AND status = 'active'`, [token]);
         return row || null;
     }
 
-    function requireSession(args, socket) {
-        const session = getSession(args, socket);
+    async function requireSession(args, socket) {
+        const session = await getSession(args, socket);
         if (!session) throw new Error("Authentication required");
         return session;
     }
 
-    function getUserGroups(userId) {
-        return memDb.prepare("SELECT group_id FROM user_groups WHERE user_id = ?").all(userId).map(r => r.group_id);
+    async function getUserGroups(userId) {
+        const rows = await dbAll(memDb, "SELECT group_id FROM user_groups WHERE user_id = ?", [userId]);
+        return rows.map(r => r.group_id);
     }
 
-    function getUserGroupDetails(userId) {
-        const groupIds = getUserGroups(userId);
+    async function getUserGroupDetails(userId) {
+        const groupIds = await getUserGroups(userId);
         if (!groupIds.length) return [];
-        return memDb.prepare(`SELECT id, name FROM groups WHERE id IN (${groupIds.map(() => '?').join(',')}) AND status = 'active'`).all(...groupIds);
+        return await dbAll(memDb, `SELECT id, name FROM groups WHERE id IN (${groupIds.map(() => '?').join(',')}) AND status = 'active'`, groupIds);
     }
 
-    function recordAutomaticCreatorPermissions(session, table, key) {
-        memDb.prepare(`INSERT OR IGNORE INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'user', ?, ?, 1, 1, 1, 1)`)
-            .run(table, key, session.userId, session.username);
+    async function recordAutomaticCreatorPermissions(session, table, key) {
+        await dbRun(memDb, `INSERT OR IGNORE INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'user', ?, ?, 1, 1, 1, 1)`, [table, key, session.userId, session.username]);
         
-        const groupDetails = getUserGroupDetails(session.userId);
-        groupDetails.forEach(group => {
-            memDb.prepare(`INSERT OR IGNORE INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'group', ?, ?, 1, 1, 1, 1)`)
-                .run(table, key, group.id, group.name);
-        });
+        const groupDetails = await getUserGroupDetails(session.userId);
+        for (const group of groupDetails) {
+            await dbRun(memDb, `INSERT OR IGNORE INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'group', ?, ?, 1, 1, 1, 1)`, [table, key, group.id, group.name]);
+        }
     }
 
-    function getAccessControls(userId, username, resourceTable, resourceKey) {
-        const groupDetails = getUserGroupDetails(userId);
+    async function getAccessControls(userId, username, resourceTable, resourceKey) {
+        const groupDetails = await getUserGroupDetails(userId);
         let query = `SELECT principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete FROM access_controls WHERE resource_table = ? AND (resource_key = ? OR resource_key = '*') AND ((principal_type = 'user' AND principal_id = ? AND principal_name = ?)`;
         const params = [resourceTable, resourceKey, userId, username];
         
@@ -202,11 +217,11 @@ if (MODE === 'db') {
             params.push(...groupIds, ...groupNames);
         }
         query += `)`;
-        return memDb.prepare(query).all(...params);
+        return await dbAll(memDb, query, params);
     }
 
-    function getEffectivePermissions(userId, username, resourceTable, resourceKey) {
-        const rows = getAccessControls(userId, username, resourceTable, resourceKey);
+    async function getEffectivePermissions(userId, username, resourceTable, resourceKey) {
+        const rows = await getAccessControls(userId, username, resourceTable, resourceKey);
         return rows.reduce((perms, row) => ({
             read: perms.read || row.can_read,
             create: perms.create || row.can_create,
@@ -215,22 +230,24 @@ if (MODE === 'db') {
         }), { read: 0, create: 0, update: 0, delete: 0 });
     }
 
-    function hasPermission(userId, username, resourceTable, resourceKey, action) {
+    async function hasPermission(userId, username, resourceTable, resourceKey, action) {
         if (username === 'admin') return true;
-        const effective = getEffectivePermissions(userId, username, resourceTable, resourceKey);
+        const effective = await getEffectivePermissions(userId, username, resourceTable, resourceKey);
         return effective[action] === 1;
     }
 
-    function ensurePermission(userId, username, resourceTable, resourceKey, action) {
-        if (!hasPermission(userId, username, resourceTable, resourceKey, action)) {
+    async function ensurePermission(userId, username, resourceTable, resourceKey, action) {
+        const allowed = await hasPermission(userId, username, resourceTable, resourceKey, action);
+        if (!allowed) {
             throw new Error(`Permission denied for ${action} on ${resourceTable}:${resourceKey}`);
         }
     }
 
-    function getAuthorizedKeys(userId, username, resourceTable, action) {
-        if (username === 'admin' || hasPermission(userId, username, resourceTable, '*', action)) return null;
+    async function getAuthorizedKeys(userId, username, resourceTable, action) {
+        const allowedAll = await hasPermission(userId, username, resourceTable, '*', action);
+        if (username === 'admin' || allowedAll) return null;
         const column = action === 'read' ? 'can_read' : action === 'create' ? 'can_create' : action === 'update' ? 'can_update' : 'can_delete';
-        const groupDetails = getUserGroupDetails(userId);
+        const groupDetails = await getUserGroupDetails(userId);
         let query = `SELECT DISTINCT resource_key FROM access_controls WHERE resource_table = ? AND resource_key != '*' AND ${column} = 1 AND ((principal_type = 'user' AND principal_id = ? AND principal_name = ?)`;
         const params = [resourceTable, userId, username];
         
@@ -241,29 +258,30 @@ if (MODE === 'db') {
             params.push(...groupIds, ...groupNames);
         }
         query += `)`;
-        return memDb.prepare(query).all(...params).map(r => r.resource_key);
+        const rows = await dbAll(memDb, query, params);
+        return rows.map(r => r.resource_key);
     }
 
-    const persistToDisk = (targetPath = DB_PATH, socket = null, cmd = 'auto-sync') => {
+    const persistToDisk = async (targetPath = DB_PATH, socket = null, cmd = 'auto-sync') => {
         if (!memDb) return false;
         const tmpPath = targetPath + '.tmp';
         const uniqueAlias = 'ds_' + Math.random().toString(36).substring(2, 10);
         try {
             if (fs.existsSync(tmpPath)) { try { fs.unlinkSync(tmpPath); } catch(e) {} }
             
-            memDb.exec(`ATTACH DATABASE '${tmpPath}' AS ${uniqueAlias}`);
-            const memoryTables = memDb.prepare("SELECT name, sql FROM main.sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
+            await dbExec(memDb, `ATTACH DATABASE '${tmpPath}' AS ${uniqueAlias}`);
+            const memoryTables = await dbAll(memDb, "SELECT name, sql FROM main.sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
             
-            memoryTables.forEach(t => {
-                memDb.exec(`DROP TABLE IF EXISTS ${uniqueAlias}.${t.name}`);
+            for (const t of memoryTables) {
+                await dbExec(memDb, `DROP TABLE IF EXISTS ${uniqueAlias}.${t.name}`);
                 const createSql = t.sql
                     .replace(`CREATE TABLE ${t.name}`, `CREATE TABLE ${uniqueAlias}.${t.name}`)
                     .replace(`CREATE TABLE IF NOT EXISTS ${t.name}`, `CREATE TABLE IF NOT EXISTS ${uniqueAlias}.${t.name}`);
-                memDb.exec(createSql);
-                memDb.exec(`INSERT INTO ${uniqueAlias}.${t.name} SELECT * FROM main.${t.name}`);
-            });
+                await dbExec(memDb, createSql);
+                await dbExec(memDb, `INSERT INTO ${uniqueAlias}.${t.name} SELECT * FROM main.${t.name}`);
+            }
             
-            memDb.exec(`DETACH DATABASE ${uniqueAlias}`);
+            await dbExec(memDb, `DETACH DATABASE ${uniqueAlias}`);
 
             let renamed = false;
             let attempts = 0;
@@ -271,7 +289,7 @@ if (MODE === 'db') {
             while (!renamed && attempts < 5) {
                 try {
                     if (fs.existsSync(targetPath)) {
-                        try { fs.unlinkSync(targetPath); } catch (e) {
+                        try { fs.renameSync(targetPath, targetPath + '.bak'); fs.unlinkSync(targetPath + '.bak'); } catch (e) {
                             fs.writeFileSync(targetPath, fs.readFileSync(tmpPath));
                             renamed = true;
                             break;
@@ -281,7 +299,7 @@ if (MODE === 'db') {
                     renamed = true;
                 } catch (err) {
                     attempts++;
-                    const buffer = Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempts * 50);
+                    await new Promise(r => setTimeout(r, attempts * 50));
                 }
             }
 
@@ -297,7 +315,7 @@ if (MODE === 'db') {
             if (socket) sendJson(socket, { status, command: cmd, message: msg });
             return true;
         } catch (err) {
-            try { memDb.exec(`DETACH DATABASE ${uniqueAlias}`); } catch(e) {}
+            try { await dbExec(memDb, `DETACH DATABASE ${uniqueAlias}`); } catch(e) {}
             try { if(fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch(e) {}
             const status = "ERROR";
             const msg = err.message;
@@ -327,17 +345,17 @@ if (MODE === 'db') {
             }
         });
 
-        const handleDisconnection = () => {
+        const handleDisconnection = async () => {
             logger(socket, "NETWORK", "DISCONNECT", "INFO", "Connection closed");
             if (socket.authSession) {
                 try {
-                    memDb.prepare("UPDATE sessions SET status = 'inactive' WHERE token = ?").run(socket.authSession);
+                    await dbRun(memDb, "UPDATE sessions SET status = 'inactive' WHERE token = ?", [socket.authSession]);
                     logger(socket, "SESSION", "AUTO_LOGOUT", "SUCCESS", `Logged out active session due to exit/disconnect context`);
                 } catch (e) {
                     logger(socket, "SESSION", "AUTO_LOGOUT", "ERROR", e.message);
                 }
             }
-            persistToDisk();
+            await persistToDisk();
         };
 
         socket.on('end', handleDisconnection);
@@ -360,7 +378,7 @@ if (MODE === 'db') {
         });
     }
 
-    function shutdownGracefully(reason, exitCode = 0) {
+    async function shutdownGracefully(reason, exitCode = 0) {
         if (isShuttingDown) return;
         isShuttingDown = true;
         
@@ -369,7 +387,7 @@ if (MODE === 'db') {
         clearInterval(autoSyncInterval);
         
         try {
-            memDb.prepare("UPDATE sessions SET status = 'inactive' WHERE status = 'active'").run();
+            await dbRun(memDb, "UPDATE sessions SET status = 'inactive' WHERE status = 'active'");
             logger(null, "SESSION", "CRITICAL_LOGOUT", "SUCCESS", "All active database sessions have been set to inactive state safely.");
         } catch (e) {
             console.error("Failed to invalidate session tables during process tear down:", e.message);
@@ -381,7 +399,7 @@ if (MODE === 'db') {
 
         try {
             logger(null, "SYSTEM", "CRITICAL_DUMP", "INFO", "Attempting automatic memory state snapshot persistence into disk target file...");
-            const success = persistToDisk(DB_PATH, null, 'shutdown-sync');
+            const success = await persistToDisk(DB_PATH, null, 'shutdown-sync');
             if (success) {
                 logger(null, "SYSTEM", "CRITICAL_DUMP", "SUCCESS", "Emergency exit state sync was processed effectively.");
             } else {
@@ -392,7 +410,7 @@ if (MODE === 'db') {
         }
 
         try {
-            memDb.close();
+            await new Promise((res) => memDb.close(() => res()));
         } catch (e) {}
 
         process.exit(exitCode);
@@ -411,7 +429,7 @@ if (MODE === 'db') {
         shutdownGracefully(`unhandledRejection: ${reason}`, 1);
     });
 
-    function executeCommand(cmd, args, socket) {
+    async function executeCommand(cmd, args, socket) {
         const command = cmd ? cmd.toLowerCase() : '';
         const writeCmds = ['set', 'delete', 'clear', 'init', 'load', 'sql', 'use', 'drop', 'groupadd', 'groupassign', 'groupremove', 'grant', 'revoke', 'register', 'passwd', 'login', 'logout'];
         if (writeCmds.includes(command)) globalLock = true;
@@ -434,100 +452,167 @@ if (MODE === 'db') {
                     const username = args.k;
                     const rawPassword = args.v;
                     if (!username || !rawPassword) return finalize(new Error("Username and password required"));
-                    const user = memDb.prepare("SELECT * FROM users WHERE username = ?").get(username);
+                    const user = await dbGet(memDb, "SELECT * FROM users WHERE username = ?", [username]);
                     if (!user || !bcrypt.compareSync(rawPassword, user.password)) {
                         return finalize(new Error("Invalid username or password"));
                     }
                     const token = crypto.randomBytes(32).toString('hex');
-                    memDb.prepare("INSERT INTO sessions (token, user_id, username, email) VALUES (?, ?, ?, ?)").run(token, user.id, user.username, user.email);
+                    await dbRun(memDb, "INSERT INTO sessions (token, user_id, username, email) VALUES (?, ?, ?, ?)", [token, user.id, user.username, user.email]);
                     
                     socket.authSession = token;
 
-                    persistToDisk();
+                    await persistToDisk();
                     finalize(null, { session: token, username: user.username });
                     break;
                 }
                 case 'logout': {
-                    const session = requireSession(args, socket);
-                    memDb.prepare("UPDATE sessions SET status = 'inactive' WHERE token = ?").run(session.session);
+                    const session = await requireSession(args, socket);
+                    await dbRun(memDb, "UPDATE sessions SET status = 'inactive' WHERE token = ?", [session.session]);
                     socket.authSession = null;
-                    persistToDisk();
+                    await persistToDisk();
                     finalize(null, "Logged out successfully");
                     break;
                 }
                 case 'passwd': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     const newPassword = args.v;
                     if (!newPassword) return finalize(new Error("New password required"));
                     const hashedPassword = bcrypt.hashSync(newPassword, 10);
-                    memDb.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, session.userId);
-                    persistToDisk();
+                    await dbRun(memDb, "UPDATE users SET password = ? WHERE id = ?", [hashedPassword, session.userId]);
+                    await persistToDisk();
                     finalize(null, "Password changed successfully");
                     break;
                 }
                 case 'use':
                     const tableToUse = (args.k || 'store').replace(/[^a-z0-9_]/gi, '');
-                    memDb.exec(`CREATE TABLE IF NOT EXISTS ${tableToUse} (key TEXT PRIMARY KEY, value TEXT)`);
+                    await dbExec(memDb, `CREATE TABLE IF NOT EXISTS ${tableToUse} (key TEXT PRIMARY KEY, value TEXT)`);
                     currentDatabase = tableToUse;
-                    persistToDisk();
+                    await persistToDisk();
                     finalize(null, `Active table: ${tableToUse}`);
+                    break;
+                case 'pwd':
+                    finalize(null, { table: currentDatabase });
                     break;
                 case 'drop':
                     const tableToDrop = (args.k || '').replace(/[^a-z0-9_]/gi, '');
                     if (!tableToDrop || tableToDrop === 'store') return finalize(new Error("Cannot drop default store"));
-                    memDb.exec(`DROP TABLE IF EXISTS ${tableToDrop}`);
+                    await dbExec(memDb, `DROP TABLE IF EXISTS ${tableToDrop}`);
                     if (currentDatabase === tableToDrop) currentDatabase = 'store';
-                    persistToDisk();
+                    await persistToDisk();
                     finalize(null, `Dropped table: ${tableToDrop}`);
                     break;
                 case 'set': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     const key = args.k;
                     const value = args.v;
                     if (!key) return finalize(new Error("Key required"));
-                    const row = memDb.prepare(`SELECT 1 FROM ${currentDatabase} WHERE key = ?`).get(key);
+                    const row = await dbGet(memDb, `SELECT 1 FROM ${currentDatabase} WHERE key = ?`, [key]);
                     const action = row ? 'update' : 'create';
-                    ensurePermission(session.userId, session.username, currentDatabase, key, action);
-                    memDb.prepare(`INSERT OR REPLACE INTO ${currentDatabase} (key, value) VALUES (?, ?)`).run(key, value);
+                    await ensurePermission(session.userId, session.username, currentDatabase, key, action);
+                    await dbRun(memDb, `INSERT OR REPLACE INTO ${currentDatabase} (key, value) VALUES (?, ?)`, [key, value]);
                     if (!row) {
-                        recordAutomaticCreatorPermissions(session, currentDatabase, key);
+                        await recordAutomaticCreatorPermissions(session, currentDatabase, key);
                     }
                     finalize(null, "OK");
                     break;
                 }
                 case 'get': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     if (!args.k) return finalize(new Error("Key required"));
-                    ensurePermission(session.userId, session.username, currentDatabase, args.k, 'read');
-                    const getResult = memDb.prepare(`SELECT value FROM ${currentDatabase} WHERE key = ?`).get(args.k);
+                    await ensurePermission(session.userId, session.username, currentDatabase, args.k, 'read');
+                    const getResult = await dbGet(memDb, `SELECT value FROM ${currentDatabase} WHERE key = ?`, [args.k]);
                     finalize(null, getResult ? [getResult] : []);
                     break;
                 }
+                case 'has':
+                case 'haskey': {
+                    const session = await requireSession(args, socket);
+                    const targetKey = args.k;
+                    if (!targetKey) return finalize(new Error("Key parameter required"));
+                    await ensurePermission(session.userId, session.username, currentDatabase, targetKey, 'read');
+                    const checkExistence = await dbGet(memDb, `SELECT 1 FROM ${currentDatabase} WHERE key = ?`, [targetKey]);
+                    finalize(null, { exists: !!checkExistence, key: targetKey });
+                    break;
+                }
+                case 'search': {
+                    const session = await requireSession(args, socket);
+                    const limit = parseInt(args.n || '100', 10);
+                    if (!args.q) return finalize(new Error("Search criteria string required"));
+                    const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
+                    let queryResults;
+                    if (authorizedKeys === null) {
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? OR value LIKE ?`, [q, q]);
+                    } else if (authorizedKeys.length > 0) {
+                        const bindings = authorizedKeys.map(() => '?').join(',');
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE (key LIKE ? OR value LIKE ?) AND key IN (${bindings})`, [q, q, ...authorizedKeys]);
+                    } else {
+                        queryResults = [];
+                    }
+                    socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
+                    sendCursorBatch(socket, finalize);
+                    break;
+                }
+                case 'searchkey': {
+                    const session = await requireSession(args, socket);
+                    const limit = parseInt(args.n || '100', 10);
+                    if (!args.q) return finalize(new Error("Search criteria string required"));
+                    const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
+                    let queryResults;
+                    if (authorizedKeys === null) {
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
+                    } else if (authorizedKeys.length > 0) {
+                        const bindings = authorizedKeys.map(() => '?').join(',');
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
+                    } else {
+                        queryResults = [];
+                    }
+                    socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
+                    sendCursorBatch(socket, finalize);
+                    break;
+                }
+                case 'searchvalue': {
+                    const session = await requireSession(args, socket);
+                    const limit = parseInt(args.n || '100', 10);
+                    if (!args.q) return finalize(new Error("Search criteria string required"));
+                    const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
+                    let queryResults;
+                    if (authorizedKeys === null) {
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE value LIKE ?`, [q]);
+                    } else if (authorizedKeys.length > 0) {
+                        const bindings = authorizedKeys.map(() => '?').join(',');
+                        queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE value LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
+                    } else {
+                        queryResults = [];
+                    }
+                    socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
+                    sendCursorBatch(socket, finalize);
+                    break;
+                }
                 case 'delete': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     if (!args.k) return finalize(new Error("Key required"));
-                    ensurePermission(session.userId, session.username, currentDatabase, args.k, 'delete');
-                    memDb.prepare(`DELETE FROM ${currentDatabase} WHERE key = ?`).run(args.k);
+                    await ensurePermission(session.userId, session.username, currentDatabase, args.k, 'delete');
+                    await dbRun(memDb, `DELETE FROM ${currentDatabase} WHERE key = ?`, [args.k]);
                     finalize(null, "Deleted");
                     break;
                 }
                 case 'clear': {
-                    const session = requireSession(args, socket);
-                    ensurePermission(session.userId, session.username, currentDatabase, '*', 'delete');
-                    memDb.prepare(`DELETE FROM ${currentDatabase}`).run();
+                    const session = await requireSession(args, socket);
+                    await ensurePermission(session.userId, session.username, currentDatabase, '*', 'delete');
+                    await dbRun(memDb, `DELETE FROM ${currentDatabase}`);
                     finalize(null, "Cleared");
                     break;
                 }
                 case 'scan': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     const limit = parseInt(args.n || '100', 10);
-                    const authorizedKeys = getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
+                    const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
                     let scanResults;
                     if (authorizedKeys === null) {
-                        scanResults = memDb.prepare(`SELECT key, value FROM ${currentDatabase} WHERE key LIKE ?`).all(q);
+                        scanResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
-                        scanResults = memDb.prepare(`SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`).all(q, ...authorizedKeys);
+                        scanResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
                     } else {
                         scanResults = [];
                     }
@@ -536,15 +621,15 @@ if (MODE === 'db') {
                     break;
                 }
                 case 'keys': {
-                    const session = requireSession(args, socket);
+                    const session = await requireSession(args, socket);
                     const limit = parseInt(args.n || '100', 10);
-                    const authorizedKeys = getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
+                    const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
                     let keyResults;
                     if (authorizedKeys === null) {
-                        keyResults = memDb.prepare(`SELECT key FROM ${currentDatabase} WHERE key LIKE ?`).all(q);
+                        keyResults = await dbAll(memDb, `SELECT key FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
-                        keyResults = memDb.prepare(`SELECT key FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`).all(q, ...authorizedKeys);
+                        keyResults = await dbAll(memDb, `SELECT key FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
                     } else {
                         keyResults = [];
                     }
@@ -560,8 +645,8 @@ if (MODE === 'db') {
                         return finalize(new Error("Username, password, and email (-f) are required"));
                     }
                     const hashedPassword = bcrypt.hashSync(rawPassword, 10);
-                    const userResult = memDb.prepare(`INSERT INTO users (username, password, email) VALUES (?, ?, ?)`).run(username, hashedPassword, email);
-                    const newUserId = userResult.lastInsertRowid;
+                    const userResult = await dbRun(memDb, `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`, [username, hashedPassword, email]);
+                    const newUserId = userResult.lastID;
                     if (args.resource_table) {
                         const permString = args.permissions || 'read';
                         const canRead = permString.includes('read') ? 1 : 0;
@@ -569,11 +654,11 @@ if (MODE === 'db') {
                         const canUpdate = permString.includes('update') ? 1 : 0;
                         const canDelete = permString.includes('delete') ? 1 : 0;
                         const resourceKey = args.resource || '*';
-                        memDb.prepare(`INSERT INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'user', ?, ?, ?, ?, ?, ?)`).run(
+                        await dbRun(memDb, `INSERT INTO access_controls (resource_table, resource_key, principal_type, principal_id, principal_name, can_read, can_create, can_update, can_delete) VALUES (?, ?, 'user', ?, ?, ?, ?, ?, ?)`, [
                             args.resource_table, resourceKey, newUserId, username, canRead, canCreate, canUpdate, canDelete
-                        );
+                        ]);
                     }
-                    persistToDisk();
+                    await persistToDisk();
                     finalize(null, "User registered successfully");
                     break;
                 }
@@ -778,7 +863,7 @@ if (MODE === 'shell') {
         if (['clear', 'drop', 'init'].includes(cmd)) {
             pendingCommand = payload;
             activePromptMode = 'confirm';
-            rl.setPrompt(`\x1b[31m[DANGER]\\x1b[0m Confirm ${cmd} ${parts[1] || ''}? (y/n): `);
+            rl.setPrompt(`\x1b[31m[DANGER]\x1b[0m Confirm ${cmd} ${parts[1] || ''}? (y/n): `);
             rl.prompt();
         } else {
             if (clientSocket && !clientSocket.destroyed) {
