@@ -539,14 +539,12 @@ if (MODE === 'db') {
                     const limit = parseInt(args.n || '100', 10);
                     if (!args.q) return finalize(new Error("Search criteria string required"));
                     const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
-                    let queryResults;
+                    let queryResults = [];
                     if (authorizedKeys === null) {
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? OR value LIKE ?`, [q, q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE (key LIKE ? OR value LIKE ?) AND key IN (${bindings})`, [q, q, ...authorizedKeys]);
-                    } else {
-                        queryResults = [];
                     }
                     socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
                     sendCursorBatch(socket, finalize);
@@ -557,14 +555,12 @@ if (MODE === 'db') {
                     const limit = parseInt(args.n || '100', 10);
                     if (!args.q) return finalize(new Error("Search criteria string required"));
                     const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
-                    let queryResults;
+                    let queryResults = [];
                     if (authorizedKeys === null) {
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
-                    } else {
-                        queryResults = [];
                     }
                     socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
                     sendCursorBatch(socket, finalize);
@@ -575,14 +571,12 @@ if (MODE === 'db') {
                     const limit = parseInt(args.n || '100', 10);
                     if (!args.q) return finalize(new Error("Search criteria string required"));
                     const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
-                    let queryResults;
+                    let queryResults = [];
                     if (authorizedKeys === null) {
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE value LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
                         queryResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE value LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
-                    } else {
-                        queryResults = [];
                     }
                     socket.cursor = { results: queryResults, limit, index: 0, total: queryResults.length };
                     sendCursorBatch(socket, finalize);
@@ -607,14 +601,12 @@ if (MODE === 'db') {
                     const session = await requireSession(args, socket);
                     const limit = parseInt(args.n || '100', 10);
                     const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
-                    let scanResults;
+                    let scanResults = [];
                     if (authorizedKeys === null) {
                         scanResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
                         scanResults = await dbAll(memDb, `SELECT key, value FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
-                    } else {
-                        scanResults = [];
                     }
                     socket.cursor = { results: scanResults, limit, index: 0, total: scanResults.length };
                     sendCursorBatch(socket, finalize);
@@ -624,14 +616,12 @@ if (MODE === 'db') {
                     const session = await requireSession(args, socket);
                     const limit = parseInt(args.n || '100', 10);
                     const authorizedKeys = await getAuthorizedKeys(session.userId, session.username, currentDatabase, 'read');
-                    let keyResults;
+                    let keyResults = [];
                     if (authorizedKeys === null) {
                         keyResults = await dbAll(memDb, `SELECT key FROM ${currentDatabase} WHERE key LIKE ?`, [q]);
                     } else if (authorizedKeys.length > 0) {
                         const bindings = authorizedKeys.map(() => '?').join(',');
                         keyResults = await dbAll(memDb, `SELECT key FROM ${currentDatabase} WHERE key LIKE ? AND key IN (${bindings})`, [q, ...authorizedKeys]);
-                    } else {
-                        keyResults = [];
                     }
                     socket.cursor = { results: keyResults, limit, index: 0, total: keyResults.length };
                     sendCursorBatch(socket, finalize);
